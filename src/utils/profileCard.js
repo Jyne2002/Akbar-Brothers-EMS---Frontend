@@ -1,0 +1,583 @@
+import { getCompanyLabel } from '../constants/companies';
+
+const SRI_LANKA_COUNTRY_CODE = '94';
+
+export const normalizeLinkedinUrl = (value) => {
+  const trimmedValue = typeof value === 'string' ? value.trim() : '';
+
+  if (!trimmedValue) {
+    return '';
+  }
+
+  return /^https?:\/\//i.test(trimmedValue) ? trimmedValue : `https://${trimmedValue}`;
+};
+
+export const normalizeWhatsappNumber = (value) => {
+  const digits = String(value || '').replace(/[^\d]/g, '');
+
+  if (!digits) {
+    return '';
+  }
+
+  if (digits.startsWith('00')) {
+    return digits.slice(2);
+  }
+
+  if (digits.startsWith(SRI_LANKA_COUNTRY_CODE)) {
+    return digits;
+  }
+
+  if (digits.startsWith('0')) {
+    return `${SRI_LANKA_COUNTRY_CODE}${digits.slice(1)}`;
+  }
+
+  return digits;
+};
+
+export const getWhatsappUrl = (phoneNumber) => {
+  const normalizedNumber = normalizeWhatsappNumber(phoneNumber);
+
+  return normalizedNumber ? `https://wa.me/${normalizedNumber}` : '';
+};
+
+export const getOutlookUrl = (email) => {
+  const trimmedEmail = typeof email === 'string' ? email.trim() : '';
+
+  return trimmedEmail
+    ? `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(trimmedEmail)}`
+    : '';
+};
+
+export const buildPublicProfileUrl = (shareSlug) => {
+  if (typeof window === 'undefined' || !shareSlug) {
+    return '';
+  }
+
+  return `${window.location.origin}/card/${shareSlug}`;
+};
+
+export const buildPublicCompanyInfoUrl = (shareSlug, companyCode) => {
+  if (!shareSlug || !companyCode) {
+    return '';
+  }
+
+  return `/card/${shareSlug}/company/${encodeURIComponent(companyCode)}`;
+};
+
+const sanitizeFileStem = (value) =>
+  String(value || 'employee-card')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'employee-card';
+
+const downloadBlob = (blob, fileName) => {
+  const objectUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = fileName;
+  link.click();
+  window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 500);
+};
+
+const blobToUint8Array = async (blob) => new Uint8Array(await blob.arrayBuffer());
+
+const concatenateUint8Arrays = (parts) => {
+  const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
+  const combined = new Uint8Array(totalLength);
+  let offset = 0;
+
+  parts.forEach((part) => {
+    combined.set(part, offset);
+    offset += part.length;
+  });
+
+  return combined;
+};
+
+const createPdfFromJpegBytes = (jpegBytes, pageWidth, pageHeight, imageWidth, imageHeight) => {
+  const encoder = new TextEncoder();
+  const parts = [];
+  const offsets = [0];
+  let cursor = 0;
+
+  const pushText = (text) => {
+    const encoded = encoder.encode(text);
+    parts.push(encoded);
+    cursor += encoded.length;
+  };
+
+  const pushBinary = (bytes) => {
+    parts.push(bytes);
+    cursor += bytes.length;
+  };
+
+  pushText('%PDF-1.4\n%\u00ff\u00ff\u00ff\u00ff\n');
+
+  offsets[1] = cursor;
+  pushText('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+
+  offsets[2] = cursor;
+  pushText('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+
+  offsets[3] = cursor;
+  pushText(
+    `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>\nendobj\n`,
+  );
+
+  const contentStream = `q\n${pageWidth} 0 0 ${pageHeight} 0 0 cm\n/Im0 Do\nQ\n`;
+  offsets[4] = cursor;
+  pushText(`4 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}endstream\nendobj\n`);
+
+  offsets[5] = cursor;
+  pushText(
+    `5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${imageWidth} /Height ${imageHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`,
+  );
+  pushBinary(jpegBytes);
+  pushText('\nendstream\nendobj\n');
+
+  const xrefOffset = cursor;
+  pushText('xref\n0 6\n0000000000 65535 f \n');
+
+  for (let index = 1; index <= 5; index += 1) {
+    pushText(`${String(offsets[index]).padStart(10, '0')} 00000 n \n`);
+  }
+
+  pushText(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`);
+
+  return new Blob([concatenateUint8Arrays(parts)], { type: 'application/pdf' });
+};
+
+const ensureFontsReady = async () => {
+  if (document.fonts?.ready) {
+    try {
+      await document.fonts.ready;
+    } catch {
+      // Continue with the browser's fallback font if custom fonts are unavailable.
+    }
+  }
+};
+
+const toAbsoluteAssetUrl = (src) => {
+  if (!src) {
+    return '';
+  }
+
+  if (/^(data:|blob:|https?:)/i.test(src)) {
+    return src;
+  }
+
+  return new URL(src, window.location.href).href;
+};
+
+const loadImage = (src) =>
+  new Promise((resolve, reject) => {
+    const resolvedSrc = toAbsoluteAssetUrl(src);
+
+    if (!resolvedSrc) {
+      reject(new Error('Missing image source'));
+      return;
+    }
+
+    const image = new Image();
+
+    if (!/^data:/i.test(resolvedSrc)) {
+      image.crossOrigin = 'anonymous';
+    }
+
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Failed to load image: ${resolvedSrc}`));
+    image.src = resolvedSrc;
+  });
+
+const drawRoundedRectanglePath = (context, x, y, width, height, radius) => {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+
+  context.beginPath();
+  context.moveTo(x + safeRadius, y);
+  context.lineTo(x + width - safeRadius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  context.lineTo(x + width, y + height - safeRadius);
+  context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  context.lineTo(x + safeRadius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  context.lineTo(x, y + safeRadius);
+  context.quadraticCurveTo(x, y, x + safeRadius, y);
+  context.closePath();
+};
+
+const wrapLongToken = (context, token, maxWidth) => {
+  const segments = [];
+  let currentSegment = '';
+
+  Array.from(token).forEach((character) => {
+    const nextSegment = `${currentSegment}${character}`;
+
+    if (currentSegment && context.measureText(nextSegment).width > maxWidth) {
+      segments.push(currentSegment);
+      currentSegment = character;
+      return;
+    }
+
+    currentSegment = nextSegment;
+  });
+
+  if (currentSegment) {
+    segments.push(currentSegment);
+  }
+
+  return segments;
+};
+
+const wrapText = (context, value, maxWidth) => {
+  const normalizedValue = String(value || '').trim();
+
+  if (!normalizedValue) {
+    return [''];
+  }
+
+  const tokens = normalizedValue.split(/\s+/);
+  const lines = [];
+  let currentLine = '';
+
+  tokens.forEach((token) => {
+    const tokenPieces =
+      context.measureText(token).width <= maxWidth ? [token] : wrapLongToken(context, token, maxWidth);
+
+    tokenPieces.forEach((piece) => {
+      const nextLine = currentLine ? `${currentLine} ${piece}` : piece;
+
+      if (currentLine && context.measureText(nextLine).width > maxWidth) {
+        lines.push(currentLine);
+        currentLine = piece;
+        return;
+      }
+
+      currentLine = nextLine;
+    });
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines.length > 0 ? lines : [''];
+};
+
+const drawWrappedText = (context, lines, x, y, lineHeight) => {
+  lines.forEach((line, index) => {
+    context.fillText(line, x, y + index * lineHeight);
+  });
+};
+
+const getCardFileStem = (profile) =>
+  sanitizeFileStem(profile.fullName || profile.employeeNumber || profile.shareSlug || 'employee-card');
+
+const createCardArtwork = async (profile, company) => {
+  await ensureFontsReady();
+
+  const scale = 3;
+  const logicalWidth = 380;
+  const pagePadding = 16;
+  const cardX = pagePadding;
+  const cardY = pagePadding;
+  const cardWidth = logicalWidth - pagePadding * 2;
+  const cardRadius = 39;
+  const headerHeight = 168;
+  const avatarSize = 112;
+  const avatarOverlap = 24;
+  const avatarTop = cardY + headerHeight - avatarOverlap;
+  const avatarCenterX = logicalWidth / 2;
+  const nameTop = avatarTop + avatarSize + 16;
+  const boxX = cardX + 16;
+  const boxWidth = cardWidth - 32;
+  const labelColumnWidth = 110;
+  const rowGap = 12;
+  const boxPadding = 16;
+  const valueColumnX = boxX + boxPadding + labelColumnWidth + rowGap;
+  const valueColumnWidth = boxWidth - boxPadding * 2 - labelColumnWidth - rowGap;
+  const details = [
+    { label: 'Position', value: profile.jobRole || 'Not shared yet' },
+    { label: 'Department', value: profile.department || 'Not shared yet' },
+    { label: 'Phone', value: profile.phoneNumber || 'Not shared yet' },
+    { label: 'E-mail', value: profile.email || 'Not shared yet' },
+    { label: 'Company', value: company?.companyName || getCompanyLabel(profile.company) || 'Akbar Brothers' },
+  ];
+
+  const measurementCanvas = document.createElement('canvas');
+  const measurementContext = measurementCanvas.getContext('2d');
+
+  if (!measurementContext) {
+    throw new Error('Unable to prepare the profile card for download');
+  }
+
+  measurementContext.font = '600 15px Inter, Arial, sans-serif';
+  const nameMaxWidth = 248;
+  const nameLines = wrapText(
+    measurementContext,
+    profile.fullName || 'Employee Card',
+    nameMaxWidth,
+  );
+  const nameLineHeight = 36;
+  const nameHeight = nameLines.length * nameLineHeight;
+
+  const detailMeasurements = details.map((detail) => {
+    const lines = wrapText(measurementContext, detail.value, valueColumnWidth);
+    const rowContentHeight = Math.max(18, lines.length * 24);
+
+    return {
+      ...detail,
+      lines,
+      rowContentHeight,
+    };
+  });
+
+  const detailsHeight =
+    boxPadding * 2 +
+    detailMeasurements.reduce(
+      (totalHeight, detail, index) =>
+        totalHeight + detail.rowContentHeight + (index < detailMeasurements.length - 1 ? 12 : 0),
+      0,
+    );
+  const boxTop = nameTop + nameHeight + 22;
+  const cardHeight = boxTop - cardY + detailsHeight + 28;
+  const logicalHeight = Math.ceil(cardY + cardHeight + pagePadding);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = logicalWidth * scale;
+  canvas.height = logicalHeight * scale;
+
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    throw new Error('Unable to prepare the profile card for download');
+  }
+
+  context.scale(scale, scale);
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+
+  const backgroundGradient = context.createRadialGradient(
+    logicalWidth / 2,
+    24,
+    10,
+    logicalWidth / 2,
+    24,
+    logicalHeight,
+  );
+  backgroundGradient.addColorStop(0, 'rgba(233,198,204,0.55)');
+  backgroundGradient.addColorStop(0.38, 'rgba(250,246,243,0.92)');
+  backgroundGradient.addColorStop(1, '#f7f0eb');
+  context.fillStyle = backgroundGradient;
+  context.fillRect(0, 0, logicalWidth, logicalHeight);
+
+  context.save();
+  context.shadowColor = 'rgba(89,20,36,0.11)';
+  context.shadowBlur = 24;
+  context.shadowOffsetY = 10;
+  drawRoundedRectanglePath(context, cardX, cardY, cardWidth, cardHeight, cardRadius);
+  context.fillStyle = '#ffffff';
+  context.fill();
+  context.restore();
+
+  context.save();
+  drawRoundedRectanglePath(context, cardX, cardY, cardWidth, cardHeight, cardRadius);
+  context.clip();
+  const headerGradient = context.createLinearGradient(0, cardY, 0, cardY + headerHeight);
+  headerGradient.addColorStop(0, 'rgba(255,250,250,0.98)');
+  headerGradient.addColorStop(1, 'rgba(249,237,239,0.92)');
+  context.fillStyle = headerGradient;
+  context.fillRect(cardX, cardY, cardWidth, headerHeight);
+  context.restore();
+
+  const logoSource = company?.logo || '/akbar-corporate-logo.png';
+
+  try {
+    const logoImage = await loadImage(logoSource);
+    const maxLogoHeight = 74;
+    const maxLogoWidth = 240;
+    const logoRatio = Math.min(maxLogoWidth / logoImage.width, maxLogoHeight / logoImage.height);
+    const logoWidth = logoImage.width * logoRatio;
+    const logoHeight = logoImage.height * logoRatio;
+
+    context.drawImage(
+      logoImage,
+      logicalWidth / 2 - logoWidth / 2,
+      cardY + headerHeight / 2 - logoHeight / 2,
+      logoWidth,
+      logoHeight,
+    );
+  } catch {
+    context.fillStyle = '#151515';
+    context.font = '900 16px Inter, Arial, sans-serif';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(
+      company?.companyName || getCompanyLabel(profile.company) || 'Akbar Brothers',
+      logicalWidth / 2,
+      cardY + headerHeight / 2,
+    );
+  }
+
+  context.save();
+  context.shadowColor = 'rgba(89,10,22,0.2)';
+  context.shadowBlur = 18;
+  context.shadowOffsetY = 10;
+  context.beginPath();
+  context.arc(avatarCenterX, avatarTop + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+  context.fillStyle = '#ffffff';
+  context.fill();
+  context.restore();
+
+  context.save();
+  context.beginPath();
+  context.arc(avatarCenterX, avatarTop + avatarSize / 2, avatarSize / 2 - 5, 0, Math.PI * 2);
+  context.closePath();
+  context.clip();
+
+  if (profile.profileImage) {
+    try {
+      const profileImage = await loadImage(profile.profileImage);
+      const drawSize = avatarSize - 10;
+      context.drawImage(profileImage, avatarCenterX - drawSize / 2, avatarTop + 5, drawSize, drawSize);
+    } catch {
+      context.fillStyle = '#b41f31';
+      context.fillRect(avatarCenterX - avatarSize / 2, avatarTop, avatarSize, avatarSize);
+    }
+  } else {
+    context.fillStyle = '#b41f31';
+    context.fillRect(avatarCenterX - avatarSize / 2, avatarTop, avatarSize, avatarSize);
+  }
+
+  context.restore();
+
+  if (!profile.profileImage) {
+    const initials = (profile.fullName || 'AB')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
+
+    context.fillStyle = '#ffffff';
+    context.font = '900 34px Inter, Arial, sans-serif';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(initials || 'AB', avatarCenterX, avatarTop + avatarSize / 2 + 2);
+  }
+
+  context.fillStyle = '#151515';
+  context.font = '900 30px Inter, Arial, sans-serif';
+  context.textAlign = 'center';
+  context.textBaseline = 'top';
+  drawWrappedText(context, nameLines, logicalWidth / 2, nameTop, nameLineHeight);
+
+  const boxHeight = detailsHeight;
+  drawRoundedRectanglePath(context, boxX, boxTop, boxWidth, boxHeight, 28);
+  const boxGradient = context.createLinearGradient(0, boxTop, 0, boxTop + boxHeight);
+  boxGradient.addColorStop(0, '#fffdfd');
+  boxGradient.addColorStop(1, '#fcf5f6');
+  context.fillStyle = boxGradient;
+  context.fill();
+  context.strokeStyle = 'rgba(180,31,49,0.1)';
+  context.lineWidth = 1;
+  context.stroke();
+
+  let currentRowY = boxTop + boxPadding;
+  detailMeasurements.forEach((detail, index) => {
+    context.fillStyle = '#b41f31';
+    context.font = '700 13px Inter, Arial, sans-serif';
+    context.textAlign = 'left';
+    context.textBaseline = 'top';
+    context.fillText(detail.label.toUpperCase(), boxX + boxPadding, currentRowY);
+
+    context.fillStyle = 'rgba(21,21,21,0.82)';
+    context.font = '600 15px Inter, Arial, sans-serif';
+    drawWrappedText(context, detail.lines, valueColumnX, currentRowY, 24);
+
+    currentRowY += detail.rowContentHeight;
+
+    if (index < detailMeasurements.length - 1) {
+      currentRowY += 12;
+      context.strokeStyle = 'rgba(180,31,49,0.1)';
+      context.lineWidth = 1;
+      context.beginPath();
+      context.moveTo(boxX + boxPadding, currentRowY - 6);
+      context.lineTo(boxX + boxWidth - boxPadding, currentRowY - 6);
+      context.stroke();
+    }
+  });
+
+  return {
+    canvas,
+    pageWidth: logicalWidth,
+    pageHeight: logicalHeight,
+  };
+};
+
+export const downloadProfileAsJpg = async (profile, company) => {
+  const { canvas } = await createCardArtwork(profile, company);
+
+  const jpgBlob = await new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('Unable to create JPG file'));
+        return;
+      }
+
+      resolve(blob);
+    }, 'image/jpeg', 0.96);
+  });
+
+  downloadBlob(jpgBlob, `${getCardFileStem(profile)}.jpg`);
+};
+
+export const downloadProfileAsPdf = async (profile, company) => {
+  const { canvas, pageWidth, pageHeight } = await createCardArtwork(profile, company);
+
+  const jpgBlob = await new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('Unable to create PDF source image'));
+        return;
+      }
+
+      resolve(blob);
+    }, 'image/jpeg', 0.96);
+  });
+
+  const pdfBlob = createPdfFromJpegBytes(
+    await blobToUint8Array(jpgBlob),
+    pageWidth,
+    pageHeight,
+    canvas.width,
+    canvas.height,
+  );
+
+  downloadBlob(pdfBlob, `${getCardFileStem(profile)}.pdf`);
+};
+
+const escapeVCardValue = (value) =>
+  String(value || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/\n/g, '\\n')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,');
+
+export const downloadProfileAsVcf = (profile, company) => {
+  const vCard = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${escapeVCardValue(profile.fullName)}`,
+    `ORG:${escapeVCardValue(company?.companyName || getCompanyLabel(profile.company))}`,
+    `TITLE:${escapeVCardValue(profile.jobRole)}`,
+    `EMAIL:${escapeVCardValue(profile.email)}`,
+    `TEL;TYPE=CELL:${escapeVCardValue(profile.phoneNumber)}`,
+    `URL:${escapeVCardValue(normalizeLinkedinUrl(profile.linkedinUrl))}`,
+    `NOTE:${escapeVCardValue(profile.department)}`,
+    'END:VCARD',
+  ].join('\n');
+
+  downloadBlob(new Blob([vCard], { type: 'text/vcard;charset=utf-8' }), `${getCardFileStem(profile)}.vcf`);
+};

@@ -1,0 +1,572 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { Building2, Camera, Save, Share2 } from 'lucide-react';
+import ProfileSocialButtons from '../components/ProfileSocialButtons';
+import { COMPANIES, getCompanyByValue } from '../constants/companies';
+import { getStoredUser, setStoredUser } from '../utils/auth';
+
+const inputClassName =
+  'mt-1.5 w-full rounded-2xl border border-[var(--color-brand-red)]/20 bg-white px-4 py-2.5 text-sm text-[var(--color-brand-ink)] outline-none transition focus:border-[var(--color-brand-red)] focus:ring-4 focus:ring-[var(--color-brand-red)]/14 disabled:cursor-default disabled:bg-[#faf7f8] disabled:text-black/70';
+const PHONE_NUMBER_LENGTH = 10;
+const isValidEmailAddress = (value) => String(value || '').trim().includes('@');
+const getPhoneNumberError = (value) =>
+  value && value.length !== PHONE_NUMBER_LENGTH
+    ? `Phone number must be exactly ${PHONE_NUMBER_LENGTH} digits`
+    : '';
+const getEmailError = (value) =>
+  value && !isValidEmailAddress(value) ? 'Email address must include @' : '';
+
+const emptyProfile = {
+  employeeNumber: '',
+  fullName: '',
+  email: '',
+  linkedinUrl: '',
+  department: '',
+  jobRole: '',
+  phoneNumber: '',
+  company: '',
+  profileImage: '',
+  role: 'employee',
+  profileCompleted: false,
+};
+
+const MyProfile = () => {
+  const { userId } = useParams();
+  const userInfo = getStoredUser();
+  const isViewingManagedProfile = Boolean(userId);
+  const isOwnProfile = !isViewingManagedProfile;
+  const [profile, setProfile] = useState(emptyProfile);
+  const [formData, setFormData] = useState(emptyProfile);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    if (!success) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSuccess('');
+    }, 4000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [success]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const config = {
+          headers: { Authorization: `Bearer ${userInfo?.token}` },
+        };
+        const endpoint = isViewingManagedProfile
+          ? `http://localhost:5000/api/auth/users/${userId}`
+          : 'http://localhost:5000/api/auth/profile';
+        const { data } = await axios.get(endpoint, config);
+
+        if (isOwnProfile) {
+          setStoredUser(data);
+        }
+
+        setProfile(data);
+        setFormData(data);
+        setIsEditing(isOwnProfile ? !data.profileCompleted : false);
+      } catch (fetchError) {
+        setError(fetchError.response?.data?.message || 'Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [isOwnProfile, isViewingManagedProfile, userId, userInfo?.token]);
+
+  const handleChange = (field, value) => {
+    const nextValue =
+      field === 'phoneNumber' ? value.replace(/\D/g, '').slice(0, PHONE_NUMBER_LENGTH) : value;
+
+    setError('');
+    setSuccess('');
+    setFormData((currentValue) => ({
+      ...currentValue,
+      [field]: nextValue,
+    }));
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((currentValue) => ({
+        ...currentValue,
+        profileImage: reader.result?.toString() || '',
+      }));
+      setIsEditing(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async () => {
+    if (!isOwnProfile) {
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccess('');
+
+      if (emailError) {
+        setError(emailError);
+        return;
+      }
+
+      if (phoneNumberError) {
+        setError(phoneNumberError);
+        return;
+      }
+
+      const config = {
+        headers: { Authorization: `Bearer ${userInfo?.token}` },
+      };
+
+      const { data } = await axios.put('http://localhost:5000/api/auth/profile', formData, config);
+      setStoredUser(data);
+      setProfile(data);
+      setFormData(data);
+      setIsEditing(false);
+      setSuccess(
+        data.profileCompleted
+          ? 'Your profile has been saved successfully.'
+          : 'Please complete all required fields before saving.',
+      );
+    } catch (saveError) {
+      setError(saveError.response?.data?.message || 'Failed to save profile details');
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData(profile);
+    setIsEditing(false);
+    setError('');
+    setSuccess('');
+  };
+
+  const initials = useMemo(() => {
+    const source = formData.fullName || profile.fullName || profile.employeeNumber || 'AB';
+
+    return source
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((namePart) => namePart[0])
+      .join('')
+      .toUpperCase();
+  }, [formData.fullName, profile.employeeNumber, profile.fullName]);
+
+  const selectedCompanyValue = formData.company || profile.company || '';
+  const activeCompany = getCompanyByValue(selectedCompanyValue);
+  const profileCardLogoSrc = activeCompany?.logo || '/akbar-corporate-logo.png';
+  const profileCardLogoAlt = activeCompany?.companyName
+    ? `${activeCompany.companyName} logo`
+    : 'Akbar Brothers corporate logo';
+  const phoneNumberError = getPhoneNumberError(formData.phoneNumber || '');
+  const emailError = getEmailError(formData.email || '');
+  const profileComplete = profile.profileCompleted;
+  const publicCardPath =
+    isOwnProfile && profile.profileCompleted && profile.shareSlug ? `/card/${profile.shareSlug}` : '';
+  const showSetupFlow = isOwnProfile && !profileComplete;
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[55vh] items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[var(--color-brand-red-dark)]" />
+      </div>
+    );
+  }
+
+  const ProfileCard = () => (
+    <div className="relative overflow-hidden rounded-[2rem] border border-black/6 bg-white p-5 text-[var(--color-earth-brown)] shadow-[0_24px_50px_rgba(16,16,16,0.06)] xl:p-6">
+      <div className="absolute -right-10 top-5 h-24 w-24 rounded-full border border-black/5 bg-white/85" />
+      <div className="absolute bottom-0 right-0 h-28 w-28 rounded-full bg-white/90 blur-2xl" />
+
+      <div className="relative flex h-full flex-col">
+        <div className="relative mx-auto h-32 w-32">
+          <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-[5px] border-black/6 bg-white text-3xl font-black text-[var(--color-brand-red-dark)] shadow-sm">
+            {formData.profileImage ? (
+              <img
+                src={formData.profileImage}
+                alt={formData.fullName || 'Profile'}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              initials
+            )}
+          </div>
+
+          {isOwnProfile && (
+            <label
+              className="absolute bottom-1 right-1 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-4 border-white bg-[var(--color-brand-red)] text-white shadow-[0_12px_24px_rgba(142,20,36,0.22)] transition hover:bg-[var(--color-brand-red-dark)]"
+              aria-label="Change picture"
+              title="Change picture"
+            >
+              <Camera className="h-4.5 w-4.5" />
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+            </label>
+          )}
+        </div>
+
+        <div className="mt-6 text-center">
+          <img
+            src={profileCardLogoSrc}
+            alt={profileCardLogoAlt}
+            className="mx-auto h-11 w-auto object-contain"
+          />
+          <h1 className="mt-2 text-2xl font-black xl:text-3xl">
+            {formData.fullName || profile.fullName || 'Complete your profile'}
+          </h1>
+          <p className="mt-1.5 text-sm text-[var(--color-earth-brown)]/78">
+            {formData.jobRole || profile.jobRole || 'Employee role will appear here'}
+          </p>
+        </div>
+
+        <div className="mt-7 flex flex-col items-center gap-4">
+          <ProfileSocialButtons
+            linkedinUrl={formData.linkedinUrl}
+            phoneNumber={formData.phoneNumber}
+            email={formData.email}
+          />
+
+          <div className="mt-auto flex flex-wrap items-center justify-center gap-3 pt-6">
+            {activeCompany ? (
+              <Link
+                to={`/company-info/${encodeURIComponent(activeCompany.code)}`}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-brand-red)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+              >
+                <Building2 className="h-4 w-4" />
+                About {activeCompany.name}
+              </Link>
+            ) : (
+              <div className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-brand-red)]/14 bg-white px-4 py-3 text-sm font-semibold text-[var(--color-brand-red-dark)]/55">
+                <Building2 className="h-4 w-4" />
+                Select a company below
+              </div>
+            )}
+
+            {publicCardPath && (
+              <Link
+                to={publicCardPath}
+                aria-label="Open mobile share card"
+                title="Open mobile share card"
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-[var(--color-brand-red)]/18 bg-white text-[var(--color-brand-red-dark)] shadow-sm transition hover:bg-[#faf7f8]"
+              >
+                <Share2 className="h-5 w-5" />
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 pb-4 pt-1 animate-in fade-in duration-500 lg:space-y-3 lg:pb-2">
+      {showSetupFlow ? (
+        <section className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
+          <ProfileCard />
+
+          <div className="rounded-[2rem] border border-[var(--color-brand-red)]/10 bg-white p-5 shadow-[0_26px_52px_rgba(89,10,22,0.08)] xl:p-6">
+            <div className="border-b border-[var(--color-brand-red)]/10 pb-4">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-red-dark)]">
+                First Login
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-black xl:text-3xl">Complete your employee visiting card</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-5 text-black/70">
+                Welcome to the Akbar Brothers Employee Management System. Before continuing, please
+                fill in your profile details below. This card will become your homepage after saving.
+              </p>
+            </div>
+
+            {error && (
+              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-semibold text-black">Employee number</label>
+                <input type="text" value={formData.employeeNumber} className={inputClassName} disabled />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Full name</label>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(event) => handleChange('fullName', event.target.value)}
+                  className={inputClassName}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Department</label>
+                <input
+                  type="text"
+                  value={formData.department}
+                  onChange={(event) => handleChange('department', event.target.value)}
+                  className={inputClassName}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Role</label>
+                <input
+                  type="text"
+                  value={formData.jobRole}
+                  onChange={(event) => handleChange('jobRole', event.target.value)}
+                  className={inputClassName}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Phone number</label>
+                <input
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={(event) => handleChange('phoneNumber', event.target.value)}
+                  className={inputClassName}
+                  inputMode="numeric"
+                  pattern="\d{10}"
+                  maxLength={PHONE_NUMBER_LENGTH}
+                  placeholder="0712345678"
+                />
+                {phoneNumberError && <p className="mt-2 text-xs text-red-700">{phoneNumberError}</p>}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Email address</label>
+                <input
+                  type="email"
+                  value={formData.email || ''}
+                  onChange={(event) => handleChange('email', event.target.value)}
+                  className={inputClassName}
+                />
+                {emailError && <p className="mt-2 text-xs text-red-700">{emailError}</p>}
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-sm font-semibold text-black">LinkedIn profile</label>
+                <input
+                  type="url"
+                  value={formData.linkedinUrl || ''}
+                  onChange={(event) => handleChange('linkedinUrl', event.target.value)}
+                  className={inputClassName}
+                  placeholder="linkedin.com/in/your-profile"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Company</label>
+                <select
+                  value={formData.company || ''}
+                  onChange={(event) => handleChange('company', event.target.value)}
+                  className={inputClassName}
+                >
+                  <option value="">Select company</option>
+                  {COMPANIES.map((company) => (
+                    <option key={company.code} value={company.code}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSave}
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--color-brand-red)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+            >
+              <Save className="h-4 w-4" />
+              Create My Profile
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
+          <ProfileCard />
+
+          <div className="rounded-[2rem] border border-[var(--color-brand-red)]/10 bg-white p-5 shadow-[0_26px_52px_rgba(89,10,22,0.08)] xl:p-6">
+            <div className="flex flex-col gap-3 border-b border-[var(--color-brand-red)]/10 pb-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-red-dark)]">
+                  {isViewingManagedProfile ? 'Admin View' : 'Home'}
+                </p>
+                <h2 className="mt-2 text-2xl font-black text-black xl:text-3xl">
+                  {isViewingManagedProfile ? 'Employee Profile' : 'My Profile'}
+                </h2>
+                {isViewingManagedProfile && (
+                  <p className="mt-2 text-sm text-black/68">
+                    You are viewing this employee&apos;s internal visiting card profile.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {isViewingManagedProfile ? (
+                  <Link
+                    to="/admin"
+                    className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#faf7f8]"
+                  >
+                    Back to Admin Panel
+                  </Link>
+                ) : !isEditing ? (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="rounded-full bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+                  >
+                    Edit details
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleCancel}
+                      className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#faf7f8]"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      className="inline-flex items-center gap-2 rounded-full bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+                    >
+                      <Save className="h-4 w-4" />
+                      Save changes
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {error && (
+              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="mt-4 rounded-2xl border border-black/8 bg-white px-4 py-3 text-sm text-[var(--color-brand-red-dark)] shadow-sm">
+                {success}
+              </div>
+            )}
+
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-semibold text-black">Employee number</label>
+                <input type="text" value={formData.employeeNumber} className={inputClassName} disabled />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Full name</label>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(event) => handleChange('fullName', event.target.value)}
+                  className={inputClassName}
+                  disabled={isViewingManagedProfile || !isEditing}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Department</label>
+                <input
+                  type="text"
+                  value={formData.department}
+                  onChange={(event) => handleChange('department', event.target.value)}
+                  className={inputClassName}
+                  disabled={isViewingManagedProfile || !isEditing}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Role</label>
+                <input
+                  type="text"
+                  value={formData.jobRole}
+                  onChange={(event) => handleChange('jobRole', event.target.value)}
+                  className={inputClassName}
+                  disabled={isViewingManagedProfile || !isEditing}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Phone number</label>
+                <input
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={(event) => handleChange('phoneNumber', event.target.value)}
+                  className={inputClassName}
+                  inputMode="numeric"
+                  pattern="\d{10}"
+                  maxLength={PHONE_NUMBER_LENGTH}
+                  placeholder="0712345678"
+                  disabled={isViewingManagedProfile || !isEditing}
+                />
+                {phoneNumberError && <p className="mt-2 text-xs text-red-700">{phoneNumberError}</p>}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Email address</label>
+                <input
+                  type="email"
+                  value={formData.email || ''}
+                  onChange={(event) => handleChange('email', event.target.value)}
+                  className={inputClassName}
+                  disabled={isViewingManagedProfile || !isEditing}
+                />
+                {emailError && <p className="mt-2 text-xs text-red-700">{emailError}</p>}
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-sm font-semibold text-black">LinkedIn profile</label>
+                <input
+                  type="url"
+                  value={formData.linkedinUrl || ''}
+                  onChange={(event) => handleChange('linkedinUrl', event.target.value)}
+                  className={inputClassName}
+                  placeholder="linkedin.com/in/your-profile"
+                  disabled={isViewingManagedProfile || !isEditing}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">Company</label>
+                <select
+                  value={formData.company || ''}
+                  onChange={(event) => handleChange('company', event.target.value)}
+                  className={inputClassName}
+                  disabled={isViewingManagedProfile || !isEditing}
+                >
+                  <option value="">Select company</option>
+                  {COMPANIES.map((company) => (
+                    <option key={company.code} value={company.code}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+};
+
+export default MyProfile;
