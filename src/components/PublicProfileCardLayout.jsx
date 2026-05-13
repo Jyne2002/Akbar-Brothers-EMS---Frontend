@@ -106,23 +106,6 @@ const PublicProfileCardLayout = ({
       {showInteractiveSection && (
         <>
           <div className="mt-3 flex justify-center">
-            {publicCompanyInfoPath ? (
-              <Link
-                to={publicCompanyInfoPath}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-brand-red)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(142,20,36,0.24)] transition hover:bg-[var(--color-brand-red-dark)]"
-              >
-                <Building2 className="h-4 w-4" />
-                About Company
-              </Link>
-            ) : (
-              <div className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f4f4f4] px-5 py-2.5 text-sm font-semibold text-black/55">
-                <Building2 className="h-4 w-4" />
-                Company information unavailable
-              </div>
-            )}
-          </div>
-
-          <div className="mt-3 border-t border-black/10 px-1 pb-2.5 pt-3">
             <div className="flex items-center justify-center gap-3">
               {socialLinks.map((link) => (
                 <a
@@ -141,42 +124,11 @@ const PublicProfileCardLayout = ({
                 </a>
               ))}
             </div>
+          </div>
 
-            <div className="mt-2.5 flex items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={onShare}
-                aria-label="Share this card"
-                title="Share this card"
-                className="inline-flex h-10 w-10 items-center justify-center text-black transition hover:-translate-y-0.5"
-              >
-                <Share2 className="h-6 w-6" />
-              </button>
-
-              <button
-                type="button"
-                onClick={onCopy}
-                aria-label="Copy this card link"
-                title="Copy this card link"
-                className="inline-flex h-10 w-10 items-center justify-center text-black transition hover:-translate-y-0.5"
-              >
-                <Copy className="h-6 w-6" />
-              </button>
-
-              <button
-                type="button"
-                onClick={onToggleDownloadMenu}
-                disabled={downloading}
-                aria-label="Download this card"
-                title="Download this card"
-                className="inline-flex h-10 w-10 items-center justify-center text-black transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                <Download className="h-6 w-6" />
-              </button>
-            </div>
-
+          <div className="mt-3 border-t border-black/10 px-1 pb-2.5 pt-3">
             {downloadMenuOpen && (
-              <div className="mt-2.5 grid grid-cols-3 gap-2">
+              <div className="mb-3 grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => onDownload?.('jpg')}
@@ -200,6 +152,56 @@ const PublicProfileCardLayout = ({
                 </button>
               </div>
             )}
+
+            <div className="flex items-center justify-center gap-2.5">
+              <button
+                type="button"
+                onClick={onShare}
+                aria-label="Share this card"
+                title="Share this card"
+                className="inline-flex h-9 w-9 items-center justify-center text-black transition hover:-translate-y-0.5"
+              >
+                <Share2 className="h-5 w-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={onCopy}
+                aria-label="Copy this card link"
+                title="Copy this card link"
+                className="inline-flex h-9 w-9 items-center justify-center text-black transition hover:-translate-y-0.5"
+              >
+                <Copy className="h-5 w-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={onToggleDownloadMenu}
+                disabled={downloading}
+                aria-label="Download this card"
+                title="Download this card"
+                className="inline-flex h-9 w-9 items-center justify-center text-black transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <Download className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-3 flex justify-center">
+              {publicCompanyInfoPath ? (
+                <Link
+                  to={publicCompanyInfoPath}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-brand-red)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(142,20,36,0.24)] transition hover:bg-[var(--color-brand-red-dark)]"
+                >
+                  <Building2 className="h-4 w-4" />
+                  About Company
+                </Link>
+              ) : (
+                <div className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f4f4f4] px-5 py-2.5 text-sm font-semibold text-black/55">
+                  <Building2 className="h-4 w-4" />
+                  Company information unavailable
+                </div>
+              )}
+            </div>
 
             {notice && (
               <p className="mt-2.5 text-center text-sm font-medium text-black">
