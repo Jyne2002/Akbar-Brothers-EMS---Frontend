@@ -1,13 +1,8 @@
 import { Phone } from 'lucide-react';
-
-const RED_ICON_KEYS = new Set(['linkedin', 'facebook', 'instagram', 'whatsapp']);
-const RED_ICON_TINT_STYLE = {
-  filter:
-    'brightness(0) saturate(100%) invert(15%) sepia(79%) saturate(3546%) hue-rotate(340deg) brightness(82%) contrast(101%)',
-};
+import { getBrandMaskedIconStyle } from '../utils/socialIcons';
 
 const getImageClassName = (alt, size) => {
-  return size === 'compact' ? 'h-12 w-12 object-contain' : 'h-14 w-14 object-contain';
+  return size === 'compact' ? 'inline-block h-12 w-12' : 'inline-block h-14 w-14';
 };
 
 const getPhoneBadgeClassName = (size) =>
@@ -44,11 +39,10 @@ const CompanyActionButtons = ({ company, size = 'default', centered = false }) =
                 <Phone className={getPhoneIconClassName(size)} />
               </span>
             ) : (
-              <img
-                src={link.icon}
-                alt={link.alt}
+              <span
+                aria-hidden="true"
                 className={getImageClassName(link.alt, size)}
-                style={RED_ICON_KEYS.has(link.key) ? RED_ICON_TINT_STYLE : undefined}
+                style={getBrandMaskedIconStyle(link.icon)}
               />
             )}
           </a>

@@ -1,9 +1,5 @@
 import { getWhatsappUrl, normalizeLinkedinUrl } from '../utils/profileCard';
-
-const RED_ICON_TINT_STYLE = {
-  filter:
-    'brightness(0) saturate(100%) invert(15%) sepia(79%) saturate(3546%) hue-rotate(340deg) brightness(82%) contrast(101%)',
-};
+import { getBrandMaskedIconStyle } from '../utils/socialIcons';
 
 const ProfileSocialButtons = ({ linkedinUrl, phoneNumber, size = 'default' }) => {
   const socialLinks = [
@@ -35,11 +31,10 @@ const ProfileSocialButtons = ({ linkedinUrl, phoneNumber, size = 'default' }) =>
             aria-label={link.alt}
             className="inline-flex items-center justify-center transition hover:-translate-y-0.5"
           >
-            <img
-              src={link.icon}
-              alt={link.alt}
-              className={`${imageClassName} object-contain`}
-              style={RED_ICON_TINT_STYLE}
+            <span
+              aria-hidden="true"
+              className={`${imageClassName} inline-block`}
+              style={getBrandMaskedIconStyle(link.icon)}
             />
           </a>
         ) : (
@@ -50,11 +45,10 @@ const ProfileSocialButtons = ({ linkedinUrl, phoneNumber, size = 'default' }) =>
             disabled
             className="inline-flex items-center justify-center opacity-45"
           >
-            <img
-              src={link.icon}
-              alt={link.alt}
-              className={`${imageClassName} object-contain`}
-              style={RED_ICON_TINT_STYLE}
+            <span
+              aria-hidden="true"
+              className={`${imageClassName} inline-block`}
+              style={getBrandMaskedIconStyle(link.icon)}
             />
           </button>
         ),

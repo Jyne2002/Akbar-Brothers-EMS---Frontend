@@ -1,10 +1,6 @@
 import { ArrowLeft, Building2, Copy, Download, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const RED_ICON_TINT_STYLE = {
-  filter:
-    'brightness(0) saturate(100%) invert(15%) sepia(79%) saturate(3546%) hue-rotate(340deg) brightness(82%) contrast(101%)',
-};
+import { getBrandMaskedIconStyle } from '../utils/socialIcons';
 
 const PublicProfileCardLayout = ({
   profile,
@@ -135,11 +131,10 @@ const PublicProfileCardLayout = ({
                   aria-label={link.alt}
                   className="inline-flex items-center justify-center transition hover:-translate-y-0.5"
                 >
-                  <img
-                    src={link.icon}
-                    alt={link.alt}
-                    className="h-10 w-10 object-contain"
-                    style={RED_ICON_TINT_STYLE}
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-10 w-10"
+                    style={getBrandMaskedIconStyle(link.icon)}
                   />
                 </a>
               ))}
