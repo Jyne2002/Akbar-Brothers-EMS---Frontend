@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Building2, Camera, Save, Share2 } from 'lucide-react';
+import ProfileImageEditorModal from '../components/ProfileImageEditorModal';
 import ProfileSocialButtons from '../components/ProfileSocialButtons';
 import { COMPANIES, getCompanyByValue } from '../constants/companies';
 import api from '../utils/api';
@@ -82,6 +83,8 @@ const MyProfile = () => {
   const [isEditing, setIsEditing] = useState(
     isOwnProfile ? !cachedOwnProfile.profileCompleted : false,
   );
+  const [imageEditorSource, setImageEditorSource] = useState('');
+  const [isImageEditorOpen, setIsImageEditorOpen] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const hasLocalChangesRef = useRef(false);
@@ -91,6 +94,8 @@ const MyProfile = () => {
     setFormData(cachedOwnProfile);
     setLoading(!hasCachedOwnProfile);
     setIsEditing(isOwnProfile ? !cachedOwnProfile.profileCompleted : false);
+    setImageEditorSource('');
+    setIsImageEditorOpen(false);
     setError('');
     setSuccess('');
     hasLocalChangesRef.current = false;
@@ -185,20 +190,43 @@ const MyProfile = () => {
 
   const handleImageChange = (event) => {
     const file = event.target.files?.[0];
+    event.target.value = '';
+
     if (!file) {
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
-      hasLocalChangesRef.current = true;
-      setFormData((currentValue) => ({
-        ...currentValue,
-        profileImage: reader.result?.toString() || '',
-      }));
-      setIsEditing(true);
+      const nextImageSource = reader.result?.toString() || '';
+
+      if (!nextImageSource) {
+        return;
+      }
+
+      setImageEditorSource(nextImageSource);
+      setIsImageEditorOpen(true);
+      setError('');
+      setSuccess('');
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleImageEditorClose = () => {
+    setIsImageEditorOpen(false);
+    setImageEditorSource('');
+  };
+
+  const handleImageEditorApply = (nextProfileImage) => {
+    hasLocalChangesRef.current = true;
+    setFormData((currentValue) => ({
+      ...currentValue,
+      profileImage: nextProfileImage,
+    }));
+    setIsEditing(true);
+    setError('');
+    setSuccess('');
+    handleImageEditorClose();
   };
 
   const handleSave = async () => {
@@ -371,328 +399,342 @@ const MyProfile = () => {
   );
 
   return (
-    <div className="space-y-4 pb-4 pt-1 animate-in fade-in duration-500 lg:space-y-3 lg:pb-2">
-      {showSetupFlow ? (
-        <section className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
-          <ProfileCard />
+    <>
+      <div className="space-y-4 pb-4 pt-1 animate-in fade-in duration-500 lg:space-y-3 lg:pb-2">
+        {showSetupFlow ? (
+          <section className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
+            <ProfileCard />
 
-          <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-[0_26px_52px_rgba(0,0,0,0.08)] xl:p-6">
-            <div className="border-b border-black/10 pb-4">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
-                First Login
-              </p>
-              <h2 className="mt-2 text-2xl font-black text-black xl:text-3xl">Complete your employee visiting card</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-5 text-black/70">
-                Welcome to the Akbar Brothers Employee Management System. Before continuing, please
-                fill in your profile details below. This card will become your homepage after saving.
-              </p>
-            </div>
-
-            {error && (
-              <div className="mt-4 rounded-2xl border border-black/10 bg-[#f3f3f3] px-4 py-3 text-sm text-black">
-                {error}
-              </div>
-            )}
-
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-sm font-semibold text-black">Employee number</label>
-                <input type="text" value={formData.employeeNumber} className={inputClassName} disabled />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Full name</label>
-                <input
-                  type="text"
-                  value={formData.fullName}
-                  onChange={(event) => handleChange('fullName', event.target.value)}
-                  className={inputClassName}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Department</label>
-                <input
-                  type="text"
-                  value={formData.department}
-                  onChange={(event) => handleChange('department', event.target.value)}
-                  className={inputClassName}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Role</label>
-                <input
-                  type="text"
-                  value={formData.jobRole}
-                  onChange={(event) => handleChange('jobRole', event.target.value)}
-                  className={inputClassName}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Phone number</label>
-                <input
-                  type="tel"
-                  value={formData.phoneNumber}
-                  onChange={(event) => handleChange('phoneNumber', event.target.value)}
-                  className={inputClassName}
-                  inputMode="numeric"
-                  pattern="\d{10}"
-                  maxLength={PHONE_NUMBER_LENGTH}
-                  placeholder="0712345678"
-                />
-                {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Email address</label>
-                <input
-                  type="email"
-                  value={formData.email || ''}
-                  onChange={(event) => handleChange('email', event.target.value)}
-                  className={inputClassName}
-                />
-                {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">EXT number (optional)</label>
-                <input
-                  type="tel"
-                  value={formData.extensionNumber || ''}
-                  onChange={(event) => handleChange('extensionNumber', event.target.value)}
-                  className={inputClassName}
-                  inputMode="numeric"
-                  pattern="\d{1,6}"
-                  maxLength={EXTENSION_NUMBER_MAX_LENGTH}
-                  placeholder="247"
-                />
-                {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="text-sm font-semibold text-black">LinkedIn profile</label>
-                <input
-                  type="url"
-                  value={formData.linkedinUrl || ''}
-                  onChange={(event) => handleChange('linkedinUrl', event.target.value)}
-                  className={inputClassName}
-                  placeholder="linkedin.com/in/your-profile"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Company</label>
-                <select
-                  value={formData.company || ''}
-                  onChange={(event) => handleChange('company', event.target.value)}
-                  className={inputClassName}
-                >
-                  <option value="">Select company</option>
-                  {COMPANIES.map((company) => (
-                    <option key={company.code} value={company.code}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <button
-              onClick={handleSave}
-              className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
-            >
-              <Save className="h-4 w-4" />
-              Create My Profile
-            </button>
-          </div>
-        </section>
-      ) : (
-        <section className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
-          <ProfileCard />
-
-          <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-[0_26px_52px_rgba(0,0,0,0.08)] xl:p-6">
-            <div className="flex flex-col gap-3 border-b border-black/10 pb-4 md:flex-row md:items-center md:justify-between">
-              <div>
+            <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-[0_26px_52px_rgba(0,0,0,0.08)] xl:p-6">
+              <div className="border-b border-black/10 pb-4">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
-                  {isViewingManagedProfile ? 'Admin View' : 'Home'}
+                  First Login
                 </p>
                 <h2 className="mt-2 text-2xl font-black text-black xl:text-3xl">
-                  {isViewingManagedProfile ? 'Employee Profile' : 'My Profile'}
+                  Complete your employee visiting card
                 </h2>
-                {isViewingManagedProfile && (
-                  <p className="mt-2 text-sm text-black/68">
-                    You are viewing this employee&apos;s internal visiting card profile.
-                  </p>
-                )}
+                <p className="mt-2 max-w-2xl text-sm leading-5 text-black/70">
+                  Welcome to the Akbar Brothers Employee Management System. Before continuing, please
+                  fill in your profile details below. This card will become your homepage after saving.
+                </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                {isViewingManagedProfile && (
-                  <Link
-                    to="/admin"
-                    className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
-                  >
-                    Back to Admin Panel
-                  </Link>
-                )}
+              {error && (
+                <div className="mt-4 rounded-2xl border border-black/10 bg-[#f3f3f3] px-4 py-3 text-sm text-black">
+                  {error}
+                </div>
+              )}
 
-                {!isViewingManagedProfile && !isEditing ? (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className={primaryButtonClassName}
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-sm font-semibold text-black">Employee number</label>
+                  <input type="text" value={formData.employeeNumber} className={inputClassName} disabled />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Full name</label>
+                  <input
+                    type="text"
+                    value={formData.fullName}
+                    onChange={(event) => handleChange('fullName', event.target.value)}
+                    className={inputClassName}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Department</label>
+                  <input
+                    type="text"
+                    value={formData.department}
+                    onChange={(event) => handleChange('department', event.target.value)}
+                    className={inputClassName}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Role</label>
+                  <input
+                    type="text"
+                    value={formData.jobRole}
+                    onChange={(event) => handleChange('jobRole', event.target.value)}
+                    className={inputClassName}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Phone number</label>
+                  <input
+                    type="tel"
+                    value={formData.phoneNumber}
+                    onChange={(event) => handleChange('phoneNumber', event.target.value)}
+                    className={inputClassName}
+                    inputMode="numeric"
+                    pattern="\d{10}"
+                    maxLength={PHONE_NUMBER_LENGTH}
+                    placeholder="0712345678"
+                  />
+                  {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Email address</label>
+                  <input
+                    type="email"
+                    value={formData.email || ''}
+                    onChange={(event) => handleChange('email', event.target.value)}
+                    className={inputClassName}
+                  />
+                  {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">EXT number (optional)</label>
+                  <input
+                    type="tel"
+                    value={formData.extensionNumber || ''}
+                    onChange={(event) => handleChange('extensionNumber', event.target.value)}
+                    className={inputClassName}
+                    inputMode="numeric"
+                    pattern="\d{1,6}"
+                    maxLength={EXTENSION_NUMBER_MAX_LENGTH}
+                    placeholder="247"
+                  />
+                  {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-sm font-semibold text-black">LinkedIn profile</label>
+                  <input
+                    type="url"
+                    value={formData.linkedinUrl || ''}
+                    onChange={(event) => handleChange('linkedinUrl', event.target.value)}
+                    className={inputClassName}
+                    placeholder="linkedin.com/in/your-profile"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Company</label>
+                  <select
+                    value={formData.company || ''}
+                    onChange={(event) => handleChange('company', event.target.value)}
+                    className={inputClassName}
                   >
-                    Edit details
-                  </button>
-                ) : !isViewingManagedProfile ? (
-                  <>
-                    <button
-                      onClick={handleCancel}
+                    <option value="">Select company</option>
+                    {COMPANIES.map((company) => (
+                      <option key={company.code} value={company.code}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSave}
+                className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+              >
+                <Save className="h-4 w-4" />
+                Create My Profile
+              </button>
+            </div>
+          </section>
+        ) : (
+          <section className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
+            <ProfileCard />
+
+            <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-[0_26px_52px_rgba(0,0,0,0.08)] xl:p-6">
+              <div className="flex flex-col gap-3 border-b border-black/10 pb-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
+                    {isViewingManagedProfile ? 'Admin View' : 'Home'}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-black text-black xl:text-3xl">
+                    {isViewingManagedProfile ? 'Employee Profile' : 'My Profile'}
+                  </h2>
+                  {isViewingManagedProfile && (
+                    <p className="mt-2 text-sm text-black/68">
+                      You are viewing this employee&apos;s internal visiting card profile.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {isViewingManagedProfile && (
+                    <Link
+                      to="/admin"
                       className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
                     >
-                      Cancel
-                    </button>
+                      Back to Admin Panel
+                    </Link>
+                  )}
+
+                  {!isViewingManagedProfile && !isEditing ? (
                     <button
-                      onClick={handleSave}
+                      onClick={() => setIsEditing(true)}
                       className={primaryButtonClassName}
                     >
-                      <Save className="h-4 w-4" />
-                      Save changes
+                      Edit details
                     </button>
-                  </>
-                ) : null}
+                  ) : !isViewingManagedProfile ? (
+                    <>
+                      <button
+                        onClick={handleCancel}
+                        className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className={primaryButtonClassName}
+                      >
+                        <Save className="h-4 w-4" />
+                        Save changes
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+
+              {error && (
+                <div className="mt-4 rounded-2xl border border-black/10 bg-[#f3f3f3] px-4 py-3 text-sm text-black">
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="mt-4 rounded-2xl border border-black/8 bg-white px-4 py-3 text-sm text-black shadow-sm">
+                  {success}
+                </div>
+              )}
+
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-sm font-semibold text-black">Employee number</label>
+                  <input type="text" value={formData.employeeNumber} className={inputClassName} disabled />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Full name</label>
+                  <input
+                    type="text"
+                    value={formData.fullName}
+                    onChange={(event) => handleChange('fullName', event.target.value)}
+                    className={inputClassName}
+                    disabled={isViewingManagedProfile || !isEditing}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Department</label>
+                  <input
+                    type="text"
+                    value={formData.department}
+                    onChange={(event) => handleChange('department', event.target.value)}
+                    className={inputClassName}
+                    disabled={isViewingManagedProfile || !isEditing}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Role</label>
+                  <input
+                    type="text"
+                    value={formData.jobRole}
+                    onChange={(event) => handleChange('jobRole', event.target.value)}
+                    className={inputClassName}
+                    disabled={isViewingManagedProfile || !isEditing}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Phone number</label>
+                  <input
+                    type="tel"
+                    value={formData.phoneNumber}
+                    onChange={(event) => handleChange('phoneNumber', event.target.value)}
+                    className={inputClassName}
+                    inputMode="numeric"
+                    pattern="\d{10}"
+                    maxLength={PHONE_NUMBER_LENGTH}
+                    placeholder="0712345678"
+                    disabled={isViewingManagedProfile || !isEditing}
+                  />
+                  {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Email address</label>
+                  <input
+                    type="email"
+                    value={formData.email || ''}
+                    onChange={(event) => handleChange('email', event.target.value)}
+                    className={inputClassName}
+                    disabled={isViewingManagedProfile || !isEditing}
+                  />
+                  {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">EXT number (optional)</label>
+                  <input
+                    type="tel"
+                    value={formData.extensionNumber || ''}
+                    onChange={(event) => handleChange('extensionNumber', event.target.value)}
+                    className={inputClassName}
+                    inputMode="numeric"
+                    pattern="\d{1,6}"
+                    maxLength={EXTENSION_NUMBER_MAX_LENGTH}
+                    placeholder="247"
+                    disabled={isViewingManagedProfile || !isEditing}
+                  />
+                  {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-sm font-semibold text-black">LinkedIn profile</label>
+                  <input
+                    type="url"
+                    value={formData.linkedinUrl || ''}
+                    onChange={(event) => handleChange('linkedinUrl', event.target.value)}
+                    className={inputClassName}
+                    placeholder="linkedin.com/in/your-profile"
+                    disabled={isViewingManagedProfile || !isEditing}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Company</label>
+                  <select
+                    value={formData.company || ''}
+                    onChange={(event) => handleChange('company', event.target.value)}
+                    className={inputClassName}
+                    disabled={isViewingManagedProfile || !isEditing}
+                  >
+                    <option value="">Select company</option>
+                    {COMPANIES.map((company) => (
+                      <option key={company.code} value={company.code}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
+          </section>
+        )}
+      </div>
 
-            {error && (
-              <div className="mt-4 rounded-2xl border border-black/10 bg-[#f3f3f3] px-4 py-3 text-sm text-black">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="mt-4 rounded-2xl border border-black/8 bg-white px-4 py-3 text-sm text-black shadow-sm">
-                {success}
-              </div>
-            )}
-
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-sm font-semibold text-black">Employee number</label>
-                <input type="text" value={formData.employeeNumber} className={inputClassName} disabled />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Full name</label>
-                <input
-                  type="text"
-                  value={formData.fullName}
-                  onChange={(event) => handleChange('fullName', event.target.value)}
-                  className={inputClassName}
-                  disabled={isViewingManagedProfile || !isEditing}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Department</label>
-                <input
-                  type="text"
-                  value={formData.department}
-                  onChange={(event) => handleChange('department', event.target.value)}
-                  className={inputClassName}
-                  disabled={isViewingManagedProfile || !isEditing}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Role</label>
-                <input
-                  type="text"
-                  value={formData.jobRole}
-                  onChange={(event) => handleChange('jobRole', event.target.value)}
-                  className={inputClassName}
-                  disabled={isViewingManagedProfile || !isEditing}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Phone number</label>
-                <input
-                  type="tel"
-                  value={formData.phoneNumber}
-                  onChange={(event) => handleChange('phoneNumber', event.target.value)}
-                  className={inputClassName}
-                  inputMode="numeric"
-                  pattern="\d{10}"
-                  maxLength={PHONE_NUMBER_LENGTH}
-                  placeholder="0712345678"
-                  disabled={isViewingManagedProfile || !isEditing}
-                />
-                {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Email address</label>
-                <input
-                  type="email"
-                  value={formData.email || ''}
-                  onChange={(event) => handleChange('email', event.target.value)}
-                  className={inputClassName}
-                  disabled={isViewingManagedProfile || !isEditing}
-                />
-                {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">EXT number (optional)</label>
-                <input
-                  type="tel"
-                  value={formData.extensionNumber || ''}
-                  onChange={(event) => handleChange('extensionNumber', event.target.value)}
-                  className={inputClassName}
-                  inputMode="numeric"
-                  pattern="\d{1,6}"
-                  maxLength={EXTENSION_NUMBER_MAX_LENGTH}
-                  placeholder="247"
-                  disabled={isViewingManagedProfile || !isEditing}
-                />
-                {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="text-sm font-semibold text-black">LinkedIn profile</label>
-                <input
-                  type="url"
-                  value={formData.linkedinUrl || ''}
-                  onChange={(event) => handleChange('linkedinUrl', event.target.value)}
-                  className={inputClassName}
-                  placeholder="linkedin.com/in/your-profile"
-                  disabled={isViewingManagedProfile || !isEditing}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-black">Company</label>
-                <select
-                  value={formData.company || ''}
-                  onChange={(event) => handleChange('company', event.target.value)}
-                  className={inputClassName}
-                  disabled={isViewingManagedProfile || !isEditing}
-                >
-                  <option value="">Select company</option>
-                  {COMPANIES.map((company) => (
-                    <option key={company.code} value={company.code}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-    </div>
+      {isImageEditorOpen && imageEditorSource ? (
+        <ProfileImageEditorModal
+          key={imageEditorSource}
+          imageSrc={imageEditorSource}
+          alt={formData.fullName || profile.fullName || 'Profile picture'}
+          onClose={handleImageEditorClose}
+          onApply={handleImageEditorApply}
+        />
+      ) : null}
+    </>
   );
 };
 

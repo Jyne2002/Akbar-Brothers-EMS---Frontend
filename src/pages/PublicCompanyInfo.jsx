@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2 } from 'lucide-react';
 import CompanyActionButtons from '../components/CompanyActionButtons';
@@ -7,11 +7,8 @@ import { getCompanyByValue } from '../constants/companies';
 const PublicCompanyInfo = () => {
   const { shareSlug, companyId } = useParams();
   const company = getCompanyByValue(decodeURIComponent(companyId || ''));
-  const [showLogo, setShowLogo] = useState(Boolean(company?.logo));
-
-  useEffect(() => {
-    setShowLogo(Boolean(company?.logo));
-  }, [company?.logo]);
+  const [logoErrorCompanyCode, setLogoErrorCompanyCode] = useState('');
+  const showLogo = Boolean(company?.logo) && logoErrorCompanyCode !== company?.code;
 
   if (!company) {
     return (
@@ -42,7 +39,7 @@ const PublicCompanyInfo = () => {
               src={company.logo}
               alt={`${company.companyName} corporate logo`}
               className="mx-auto h-24 w-auto object-contain sm:h-[7.5rem]"
-              onError={() => setShowLogo(false)}
+              onError={() => setLogoErrorCompanyCode(company.code)}
             />
           ) : (
             <div className="flex h-40 w-full flex-col items-center justify-center rounded-[1.8rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] px-5 text-center text-black sm:h-44">
