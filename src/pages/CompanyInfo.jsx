@@ -61,8 +61,7 @@ const CompanyInfo = () => {
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
               Company Details
             </p>
-            <h1 className="mt-3 text-4xl font-black text-black">About {company.name}</h1>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-black/74">
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-black/74">
               {company.companyOverview}
             </p>
 
