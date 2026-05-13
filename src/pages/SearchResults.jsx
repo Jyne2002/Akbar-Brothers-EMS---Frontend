@@ -41,25 +41,25 @@ const SearchResults = () => {
       <section className="rounded-[1.8rem] border border-white/50 bg-white/85 p-7 shadow-[0_22px_50px_rgba(20,40,11,0.08)]">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-tea-dark)]/70">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black/70">
               Search
             </p>
-            <h1 className="mt-2 text-3xl font-black text-[var(--color-tea-dark)]">
+            <h1 className="mt-2 text-3xl font-black text-black">
               Employee search results
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-earth-brown)]/75">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-black/75">
               Use the navbar search bar to look up any employee across all companies. Results are grouped here
               so you can jump to the right company directory.
             </p>
           </div>
-          <div className="rounded-2xl border border-[var(--color-tea-green)]/60 bg-[var(--color-tea-green)]/30 px-4 py-3 text-sm font-semibold text-[var(--color-tea-dark)]">
+          <div className="rounded-2xl border border-[var(--color-tea-green)]/60 bg-[var(--color-tea-green)]/30 px-4 py-3 text-sm font-semibold text-black">
             {query ? `Query: ${query}` : 'Enter a name, role, or employee ID above'}
           </div>
         </div>
       </section>
 
       {!query ? (
-        <div className="rounded-[1.8rem] border border-dashed border-white/70 bg-white/70 p-10 text-center text-[var(--color-earth-brown)]/70">
+        <div className="rounded-[1.8rem] border border-dashed border-white/70 bg-white/70 p-10 text-center text-black/70">
           Start typing in the navbar search bar to find employees from any company.
         </div>
       ) : loading ? (
@@ -69,8 +69,8 @@ const SearchResults = () => {
       ) : employees.length === 0 ? (
         <div className="rounded-[1.8rem] border border-white/60 bg-white/75 p-10 text-center shadow-sm">
           <Search className="mx-auto mb-4 h-10 w-10 text-[var(--color-earth-brown)]/35" />
-          <h2 className="text-xl font-bold text-[var(--color-earth-brown)]">No employees found</h2>
-          <p className="mt-2 text-sm text-[var(--color-earth-brown)]/70">
+          <h2 className="text-xl font-bold text-black">No employees found</h2>
+          <p className="mt-2 text-sm text-black/70">
             Try another name, role, phone number, or employee ID.
           </p>
         </div>
@@ -82,28 +82,28 @@ const SearchResults = () => {
               className="rounded-[1.7rem] border border-white/60 bg-white/84 p-6 shadow-[0_20px_44px_rgba(22,40,12,0.08)]"
             >
               <div className="flex gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-tea-green)]/55 text-[var(--color-tea-dark)]">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-tea-green)]/55 text-black">
                   <UserCircle className="h-8 w-8" />
                 </div>
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <h2 className="text-xl font-bold text-[var(--color-earth-brown)]">
+                      <h2 className="text-xl font-bold text-black">
                         {employee.name}
                       </h2>
-                      <p className="mt-1 flex items-center gap-2 text-sm font-medium text-[var(--color-tea-dark)]">
+                      <p className="mt-1 flex items-center gap-2 text-sm font-medium text-black">
                         <Briefcase className="h-4 w-4" />
                         {employee.position}
                       </p>
                     </div>
 
-                    <span className="rounded-full border border-[var(--color-tea-green)]/70 bg-[var(--color-tea-green)]/35 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-tea-dark)]">
+                    <span className="rounded-full border border-[var(--color-tea-green)]/70 bg-[var(--color-tea-green)]/35 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-black">
                       {getCompanyLabel(employee.company)}
                     </span>
                   </div>
 
-                  <div className="mt-5 grid gap-3 text-sm text-[var(--color-earth-brown)]/78">
+                  <div className="mt-5 grid gap-3 text-sm text-black/78">
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-[var(--color-tea-dark)]/60" />
                       {employee.phoneNumber}

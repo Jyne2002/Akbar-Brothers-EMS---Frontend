@@ -9,7 +9,7 @@ const Layout = ({ children }) => {
   const showChrome = !isAuthPage && !isPublicCardExperience;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-cream-white)] text-[var(--color-earth-brown)] font-sans">
+    <div className="min-h-screen flex flex-col bg-[var(--color-cream-white)] text-black font-sans">
       {showChrome && <Navbar />}
       <main
         className={

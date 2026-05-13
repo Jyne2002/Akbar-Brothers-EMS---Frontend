@@ -1,9 +1,13 @@
 import { Phone } from 'lucide-react';
 
-const getImageClassName = (alt, size) => {
-  const baseClassName = size === 'compact' ? 'h-12 w-12 object-contain' : 'h-14 w-14 object-contain';
+const RED_ICON_KEYS = new Set(['linkedin', 'facebook', 'instagram', 'whatsapp']);
+const RED_ICON_TINT_STYLE = {
+  filter:
+    'brightness(0) saturate(100%) invert(15%) sepia(79%) saturate(3546%) hue-rotate(340deg) brightness(82%) contrast(101%)',
+};
 
-  return alt === 'Instagram' ? `${baseClassName} scale-[1.18]` : baseClassName;
+const getImageClassName = (alt, size) => {
+  return size === 'compact' ? 'h-12 w-12 object-contain' : 'h-14 w-14 object-contain';
 };
 
 const getPhoneBadgeClassName = (size) =>
@@ -40,7 +44,12 @@ const CompanyActionButtons = ({ company, size = 'default', centered = false }) =
                 <Phone className={getPhoneIconClassName(size)} />
               </span>
             ) : (
-              <img src={link.icon} alt={link.alt} className={getImageClassName(link.alt, size)} />
+              <img
+                src={link.icon}
+                alt={link.alt}
+                className={getImageClassName(link.alt, size)}
+                style={RED_ICON_KEYS.has(link.key) ? RED_ICON_TINT_STYLE : undefined}
+              />
             )}
           </a>
         );

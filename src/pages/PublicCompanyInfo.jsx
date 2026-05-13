@@ -45,7 +45,7 @@ const PublicCompanyInfo = () => {
               onError={() => setShowLogo(false)}
             />
           ) : (
-            <div className="flex h-52 w-full flex-col items-center justify-center rounded-[2rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] px-6 text-center text-[var(--color-brand-red-dark)]">
+            <div className="flex h-52 w-full flex-col items-center justify-center rounded-[2rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] px-6 text-center text-black">
               <Building2 className="h-14 w-14" />
               <p className="mt-4 text-lg font-bold text-black">{company.name}</p>
             </div>
@@ -53,7 +53,7 @@ const PublicCompanyInfo = () => {
         </div>
 
         <div className="mt-2 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-red-dark)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
             Company Details
           </p>
           <h1 className="mt-3 text-3xl font-black text-black">About {company.name}</h1>

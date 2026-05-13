@@ -17,7 +17,7 @@ const CompanyInfo = () => {
     return (
       <div className="space-y-6 pb-12 pt-4 animate-in fade-in duration-500">
         <section className="rounded-[2rem] border border-black/8 bg-white p-8 shadow-[0_22px_52px_rgba(16,16,16,0.06)]">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-red-dark)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
             Company Details
           </p>
           <h1 className="mt-3 text-3xl font-black text-black">Company not found</h1>
@@ -49,7 +49,7 @@ const CompanyInfo = () => {
                 onError={() => setShowLogo(false)}
               />
             ) : (
-              <div className="flex h-64 w-full max-w-[18rem] flex-col items-center justify-center rounded-[2rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] px-6 text-center text-[var(--color-brand-red-dark)]">
+              <div className="flex h-64 w-full max-w-[18rem] flex-col items-center justify-center rounded-[2rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] px-6 text-center text-black">
                 <Building2 className="h-14 w-14" />
                 <p className="mt-4 text-lg font-bold text-black">{company.name}</p>
                 <p className="mt-2 text-sm text-black/65">Logo will appear here once it is available.</p>
@@ -58,7 +58,7 @@ const CompanyInfo = () => {
           </div>
 
           <div className="px-1 py-2">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-red-dark)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
               Company Details
             </p>
             <h1 className="mt-3 text-4xl font-black text-black">About {company.name}</h1>

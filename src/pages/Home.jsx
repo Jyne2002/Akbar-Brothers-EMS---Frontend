@@ -65,28 +65,28 @@ const Home = () => {
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-tea-green)]/55 text-[var(--color-tea-dark)] shadow-inner">
                   <Building2 className="h-7 w-7" />
                 </div>
-                <span className="rounded-full border border-[var(--color-tea-green)]/80 bg-[var(--color-tea-green)]/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-tea-dark)]">
+                <span className="rounded-full border border-[var(--color-tea-green)]/80 bg-[var(--color-tea-green)]/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-black">
                   {company.code}
                 </span>
               </div>
 
-              <h2 className="mt-5 text-xl font-black text-[var(--color-earth-brown)]">
+              <h2 className="mt-5 text-xl font-black text-black">
                 {company.name}
               </h2>
 
               <div className="mt-4 flex items-center gap-3 rounded-2xl bg-[var(--color-cream-white)]/85 px-4 py-3">
                 <Users className="h-5 w-5 text-[var(--color-tea-dark)]" />
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-tea-dark)]/70">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-black/70">
                     Employees
                   </p>
-                  <p className="text-lg font-bold text-[var(--color-earth-brown)]">
+                  <p className="text-lg font-bold text-black">
                     {employeeCounts[company.id] || 0}
                   </p>
                 </div>
               </div>
 
-              <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-tea-dark)]">
+              <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-black">
                 Open company directory
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
               </div>

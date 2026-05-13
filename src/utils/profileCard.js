@@ -40,14 +40,6 @@ export const getWhatsappUrl = (phoneNumber) => {
   return normalizedNumber ? `https://wa.me/${normalizedNumber}` : '';
 };
 
-export const getOutlookUrl = (email) => {
-  const trimmedEmail = typeof email === 'string' ? email.trim() : '';
-
-  return trimmedEmail
-      ? `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(trimmedEmail)}`
-    : '';
-};
-
 export const formatPhoneWithExtension = (phoneNumber, extensionNumber) => {
   const normalizedPhoneNumber = String(phoneNumber || '').trim();
   const normalizedExtensionNumber = String(extensionNumber || '').trim();

@@ -6,7 +6,15 @@ import api from '../utils/api';
 import { getStoredUser } from '../utils/auth';
 
 const inputClassName =
-  'w-full rounded-2xl border border-[var(--color-brand-red)]/18 bg-white px-4 py-3 text-sm text-[var(--color-brand-ink)] outline-none transition focus:border-[var(--color-brand-red)] focus:ring-4 focus:ring-[var(--color-brand-red)]/14';
+  'w-full rounded-2xl border border-black/10 bg-[#f4f4f4] px-4 py-3 text-sm text-black outline-none transition focus:border-black/20 focus:ring-4 focus:ring-black/8';
+const activeFilterButtonClassName =
+  'border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] text-white shadow-[0_14px_28px_rgba(142,20,36,0.18)]';
+const primaryButtonClassName =
+  'rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
+const compactPrimaryButtonClassName =
+  'rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
+const disabledPrimaryButtonClassName =
+  'disabled:cursor-not-allowed disabled:border-[var(--color-brand-red)]/45 disabled:bg-[var(--color-brand-red)]/45 disabled:text-white/80';
 
 const matchesUserSearch = (user, searchValue) => {
   const normalizedSearch = searchValue.trim().toLowerCase();
@@ -177,10 +185,10 @@ const AdminPanel = () => {
 
   return (
     <div className="space-y-8 pb-12 pt-4 animate-in fade-in duration-500">
-      <section className="rounded-[2rem] border border-[var(--color-brand-red)]/8 bg-[linear-gradient(135deg,_rgba(255,255,255,0.95)_0%,_rgba(251,231,234,0.82)_100%)] p-7 shadow-[0_28px_60px_rgba(89,10,22,0.08)]">
+      <section className="rounded-[2rem] border border-black/8 bg-[linear-gradient(135deg,_rgba(255,255,255,0.97)_0%,_rgba(241,241,241,0.94)_100%)] p-7 shadow-[0_28px_60px_rgba(0,0,0,0.08)]">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-red-dark)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
               Admin Panel
             </p>
             <h1 className="mt-2 text-4xl font-black text-black">Manage employees and access</h1>
@@ -191,8 +199,8 @@ const AdminPanel = () => {
               onClick={() => setActiveSection('admins')}
               className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
                 activeSection === 'admins'
-                  ? 'bg-[var(--color-brand-red)] text-white shadow-lg'
-                  : 'border border-black/10 bg-white text-black hover:bg-[#faf7f8]'
+                  ? activeFilterButtonClassName
+                  : 'border border-black/10 bg-white text-black hover:bg-[#f3f3f3]'
               }`}
             >
               Manage Admins
@@ -201,8 +209,8 @@ const AdminPanel = () => {
               onClick={() => setActiveSection('employees')}
               className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
                 activeSection === 'employees'
-                  ? 'bg-[var(--color-brand-red)] text-white shadow-lg'
-                  : 'border border-black/10 bg-white text-black hover:bg-[#faf7f8]'
+                  ? activeFilterButtonClassName
+                  : 'border border-black/10 bg-white text-black hover:bg-[#f3f3f3]'
               }`}
             >
               Manage Employees
@@ -212,20 +220,20 @@ const AdminPanel = () => {
       </section>
 
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-black/10 bg-[#f3f3f3] px-4 py-3 text-sm text-black">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-2xl border border-red-100 bg-[var(--color-brand-red-soft)] px-4 py-3 text-sm text-[var(--color-brand-red-dark)]">
+        <div className="rounded-2xl border border-black/10 bg-[#f3f3f3] px-4 py-3 text-sm text-black">
           {success}
         </div>
       )}
 
       {activeSection === 'admins' ? (
-        <section className="rounded-[1.9rem] border border-[var(--color-brand-red)]/8 bg-white/90 p-6 shadow-[0_22px_54px_rgba(89,10,22,0.08)]">
-          <div className="flex flex-col gap-4 border-b border-[var(--color-brand-red)]/10 pb-5 md:flex-row md:items-center md:justify-between">
+        <section className="rounded-[1.9rem] border border-black/8 bg-white/90 p-6 shadow-[0_22px_54px_rgba(0,0,0,0.08)]">
+          <div className="flex flex-col gap-4 border-b border-black/10 pb-5 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-black text-black">Admin access management</h2>
             </div>
@@ -238,12 +246,12 @@ const AdminPanel = () => {
                   value={userSearch}
                   onChange={(event) => setUserSearch(event.target.value)}
                   placeholder="Search users"
-                  className="w-full rounded-full border border-[var(--color-brand-red)]/15 bg-[#faf7f8] py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--color-brand-red)] focus:ring-4 focus:ring-[var(--color-brand-red)]/14"
+                  className="w-full rounded-full border border-black/10 bg-[#f4f4f4] py-3 pl-11 pr-4 text-sm outline-none transition focus:border-black/20 focus:ring-4 focus:ring-black/8"
                 />
               </div>
               <button
                 onClick={fetchUsers}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#faf7f8]"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
               >
                 <RefreshCw className="h-4 w-4" />
                 Refresh
@@ -251,7 +259,7 @@ const AdminPanel = () => {
             </div>
           </div>
 
-          <div className="mt-6 rounded-[1.6rem] border border-[var(--color-brand-red)]/12 bg-[#fffafb] p-5">
+          <div className="mt-6 rounded-[1.6rem] border border-black/10 bg-[#f7f7f7] p-5">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-2xl">
                 <h3 className="text-lg font-black text-black">Grant admin access</h3>
@@ -279,7 +287,7 @@ const AdminPanel = () => {
                 <button
                   onClick={handlePromoteSelectedUser}
                   disabled={!selectedPromotionUserId}
-                  className="rounded-full bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)] disabled:cursor-not-allowed disabled:bg-[var(--color-brand-red)]/45"
+                  className={`${primaryButtonClassName} ${disabledPrimaryButtonClassName}`}
                 >
                   Make admin
                 </button>
@@ -290,21 +298,21 @@ const AdminPanel = () => {
           <div className="mt-6 space-y-4">
             {loadingUsers ? (
               <div className="flex justify-center p-10">
-                <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[var(--color-brand-red-dark)]" />
+                <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-black" />
               </div>
             ) : adminUsers.length === 0 ? (
-              <div className="rounded-[1.5rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] p-10 text-center text-black/65">
+              <div className="rounded-[1.5rem] border border-dashed border-black/12 bg-[#f4f4f4] p-10 text-center text-black/65">
                 No admin accounts matched that search.
               </div>
             ) : (
               adminUsers.map((user) => (
                 <div
                   key={user._id}
-                  className="rounded-[1.6rem] border border-[var(--color-brand-red)]/10 bg-[#fffafb] p-5"
+                  className="rounded-[1.6rem] border border-black/10 bg-[#fafafa] p-5"
                 >
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-[var(--color-brand-red-soft)] text-[var(--color-brand-red-dark)]">
+                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-[#ededed] text-black/65">
                         {user.profileImage ? (
                           <img
                             src={user.profileImage}
@@ -321,11 +329,11 @@ const AdminPanel = () => {
                           <h3 className="text-xl font-bold text-black">
                             {user.fullName || user.employeeNumber}
                           </h3>
-                          <span className="rounded-full border border-[var(--color-brand-red)]/18 bg-[var(--color-brand-red-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-brand-red-dark)]">
+                          <span className="rounded-full border border-black/10 bg-[#f0f0f0] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-black">
                             Admin
                           </span>
                           {user._id === userInfo?._id && (
-                            <span className="rounded-full bg-[var(--color-brand-red)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+                            <span className="rounded-full border border-black/10 bg-[#e9e9e9] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-black">
                               You
                             </span>
                           )}
@@ -333,23 +341,23 @@ const AdminPanel = () => {
 
                         <div className="mt-3 grid gap-2 text-sm text-black/70 sm:grid-cols-2">
                           <div className="flex items-center gap-2">
-                            <Briefcase className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Briefcase className="h-4 w-4 text-black/70" />
                             {user.employeeNumber || 'No employee number'}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Mail className="h-4 w-4 text-black/70" />
                             {user.email || 'Email not added yet'}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Phone className="h-4 w-4 text-black/70" />
                             {user.phoneNumber || 'Phone not added yet'}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Building2 className="h-4 w-4 text-black/70" />
                             {getCompanyLabel(user.company) || 'No company added yet'}
                           </div>
                           <div className="flex items-center gap-2 sm:col-span-2">
-                            <Briefcase className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Briefcase className="h-4 w-4 text-black/70" />
                             {[user.jobRole, user.department].filter(Boolean).join(' / ') ||
                               'Role and department not added yet'}
                           </div>
@@ -361,14 +369,14 @@ const AdminPanel = () => {
                       <button
                         onClick={() => handleRoleToggle(user)}
                         disabled={user._id === userInfo?._id && user.role === 'admin'}
-                        className="rounded-full bg-[var(--color-brand-red)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)] disabled:cursor-not-allowed disabled:bg-[var(--color-brand-red)]/45"
+                        className={`${compactPrimaryButtonClassName} ${disabledPrimaryButtonClassName}`}
                       >
                         Remove admin
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user)}
                         disabled={user._id === userInfo?._id}
-                        className="rounded-full border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-red-100 disabled:text-red-300"
+                        className="rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35"
                       >
                         Delete user
                       </button>
@@ -380,15 +388,15 @@ const AdminPanel = () => {
           </div>
         </section>
       ) : (
-        <section className="rounded-[1.9rem] border border-[var(--color-brand-red)]/8 bg-white/90 p-6 shadow-[0_22px_54px_rgba(89,10,22,0.08)]">
-          <div className="flex flex-col gap-4 border-b border-[var(--color-brand-red)]/10 pb-6 xl:flex-row xl:items-center xl:justify-between">
+        <section className="rounded-[1.9rem] border border-black/8 bg-white/90 p-6 shadow-[0_22px_54px_rgba(0,0,0,0.08)]">
+          <div className="flex flex-col gap-4 border-b border-black/10 pb-6 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <h2 className="text-2xl font-black text-black">Employee management</h2>
             </div>
 
             <button
               onClick={fetchUsers}
-              className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#faf7f8]"
+              className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
             >
               <RefreshCw className="h-4 w-4" />
               Refresh
@@ -403,8 +411,8 @@ const AdminPanel = () => {
                   onClick={() => setSelectedCompany(company.code)}
                   className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
                     selectedCompany === company.code
-                      ? 'bg-[var(--color-brand-red)] text-white shadow-lg'
-                      : 'border border-black/10 bg-white text-black hover:bg-[#faf7f8]'
+                      ? activeFilterButtonClassName
+                      : 'border border-black/10 bg-white text-black hover:bg-[#f3f3f3]'
                   }`}
                 >
                   {company.name}
@@ -419,7 +427,7 @@ const AdminPanel = () => {
                 value={employeeSearch}
                 onChange={(event) => setEmployeeSearch(event.target.value)}
                 placeholder={`Search ${selectedCompanyLabel} employees`}
-                className="w-full rounded-full border border-[var(--color-brand-red)]/15 bg-[#faf7f8] py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--color-brand-red)] focus:ring-4 focus:ring-[var(--color-brand-red)]/14"
+                className="w-full rounded-full border border-black/10 bg-[#f4f4f4] py-3 pl-11 pr-4 text-sm outline-none transition focus:border-black/20 focus:ring-4 focus:ring-black/8"
               />
             </div>
           </div>
@@ -427,21 +435,21 @@ const AdminPanel = () => {
           <div className="mt-6 space-y-4">
             {loadingUsers ? (
               <div className="flex justify-center p-10">
-                <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[var(--color-brand-red-dark)]" />
+                <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-black" />
               </div>
             ) : employeeRecords.length === 0 ? (
-              <div className="rounded-[1.5rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] p-10 text-center text-black/65">
+              <div className="rounded-[1.5rem] border border-dashed border-black/12 bg-[#f4f4f4] p-10 text-center text-black/65">
                 No employee records found for {selectedCompanyLabel}.
               </div>
             ) : (
               employeeRecords.map((user) => (
                 <div
                   key={user._id}
-                  className="rounded-[1.6rem] border border-[var(--color-brand-red)]/10 bg-white p-5"
+                  className="rounded-[1.6rem] border border-black/10 bg-white p-5"
                 >
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-[var(--color-brand-red-soft)] text-[var(--color-brand-red-dark)]">
+                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-[#ededed] text-black/65">
                         {user.profileImage ? (
                           <img
                             src={user.profileImage}
@@ -458,30 +466,30 @@ const AdminPanel = () => {
                           <h3 className="text-xl font-bold text-black">
                             {user.fullName || user.employeeNumber}
                           </h3>
-                          <span className="rounded-full border border-[var(--color-brand-red)]/18 bg-[var(--color-brand-red-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-brand-red-dark)]">
+                          <span className="rounded-full border border-black/10 bg-[#f0f0f0] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-black">
                             {user.employeeNumber || 'No employee number'}
                           </span>
                         </div>
 
                         <div className="mt-3 grid gap-2 text-sm text-black/70 sm:grid-cols-2">
                           <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Mail className="h-4 w-4 text-black/70" />
                             {user.email || 'Email not added yet'}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Phone className="h-4 w-4 text-black/70" />
                             {user.phoneNumber || 'Phone not added yet'}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Building2 className="h-4 w-4 text-black/70" />
                             {getCompanyLabel(user.company) || 'No company added yet'}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Briefcase className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Briefcase className="h-4 w-4 text-black/70" />
                             {user.department || 'Department not added yet'}
                           </div>
                           <div className="flex items-center gap-2 sm:col-span-2">
-                            <Briefcase className="h-4 w-4 text-[var(--color-brand-red-dark)]/70" />
+                            <Briefcase className="h-4 w-4 text-black/70" />
                             {user.jobRole || 'Role not added yet'}
                           </div>
                         </div>
@@ -491,7 +499,7 @@ const AdminPanel = () => {
                     <div className="flex flex-wrap gap-3">
                       <Link
                         to={`/admin/profile/${user._id}`}
-                        className="inline-flex items-center gap-2 rounded-full bg-[var(--color-brand-red)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
                       >
                         <Eye className="h-4 w-4" />
                         View profile

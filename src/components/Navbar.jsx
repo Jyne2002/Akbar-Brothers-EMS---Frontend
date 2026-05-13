@@ -6,8 +6,8 @@ import { clearStoredUser, getStoredUser, subscribeToStoredUser } from '../utils/
 const navLinkClassName = ({ isActive }) =>
   `rounded-full px-4 py-2 text-sm font-semibold transition ${
     isActive
-      ? 'bg-white/86 text-[var(--color-brand-red-dark)] shadow-sm'
-      : 'text-[var(--color-brand-ink)] hover:bg-white/55 hover:text-[var(--color-brand-red-dark)]'
+      ? 'bg-white/86 text-black shadow-sm'
+      : 'text-black hover:bg-white/55 hover:text-black'
   }`;
 
 const Navbar = () => {

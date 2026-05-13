@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import PublicProfileCardLayout from '../components/PublicProfileCardLayout';
 import { getCompanyByValue } from '../constants/companies';
 import api from '../utils/api';
@@ -15,6 +15,7 @@ import {
 
 const PublicProfileCard = () => {
   const { shareSlug } = useParams();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -180,9 +181,11 @@ const PublicProfileCard = () => {
     }
   };
 
+  const handleBackHome = () => navigate('/');
+
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(233,198,204,0.55)_0%,_rgba(250,246,243,0.92)_38%,_#f7f0eb_100%)]">
+      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(245,245,245,0.9)_0%,_rgba(255,255,255,0.98)_42%,_#f7f7f7_100%)]">
         <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[var(--color-brand-red-dark)]" />
       </div>
     );
@@ -190,8 +193,8 @@ const PublicProfileCard = () => {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(233,198,204,0.55)_0%,_rgba(250,246,243,0.92)_38%,_#f7f0eb_100%)] px-4 py-10">
-        <div className="mx-auto max-w-sm rounded-[2.2rem] border border-[var(--color-brand-red)]/10 bg-white p-7 text-center shadow-[0_24px_54px_rgba(89,10,22,0.08)]">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(245,245,245,0.9)_0%,_rgba(255,255,255,0.98)_42%,_#f7f7f7_100%)] px-4 py-10">
+        <div className="mx-auto max-w-sm rounded-[2.2rem] border border-black/10 bg-white p-7 text-center shadow-[0_24px_54px_rgba(0,0,0,0.08)]">
           <img
             src="/akbar-corporate-logo.png"
             alt="Akbar Brothers corporate logo"
@@ -207,7 +210,7 @@ const PublicProfileCard = () => {
   }
 
   return (
-    <div className="min-h-[100svh] bg-[radial-gradient(circle_at_top,_rgba(233,198,204,0.55)_0%,_rgba(250,246,243,0.92)_38%,_#f7f0eb_100%)] px-3 py-2 md:flex md:min-h-[100dvh] md:items-center md:px-4 md:py-3">
+    <div className="min-h-[100svh] bg-[radial-gradient(circle_at_top,_rgba(245,245,245,0.9)_0%,_rgba(255,255,255,0.98)_42%,_#f7f7f7_100%)] px-3 py-2 md:flex md:min-h-[100dvh] md:items-center md:px-4 md:py-3">
       <div className="mx-auto w-full max-w-[22.5rem]">
         <PublicProfileCardLayout
           profile={profile}
@@ -220,6 +223,7 @@ const PublicProfileCard = () => {
           downloadMenuOpen={downloadMenuOpen}
           downloading={downloading}
           notice={notice}
+          onBack={handleBackHome}
           onShare={handleShare}
           onCopy={handleCopyLink}
           onToggleDownloadMenu={() => setDownloadMenuOpen((currentState) => !currentState)}

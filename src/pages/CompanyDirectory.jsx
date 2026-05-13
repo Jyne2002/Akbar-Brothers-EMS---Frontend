@@ -41,7 +41,7 @@ const CompanyDirectory = () => {
     <div className="animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-4 md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--color-tea-dark)]">{companyLabel} Directory</h1>
+          <h1 className="text-3xl font-bold text-black">{companyLabel} Directory</h1>
           <p className="text-gray-500 mt-1">Manage and view employee records</p>
         </div>
         <div className="relative max-w-sm w-full">
@@ -74,12 +74,12 @@ const CompanyDirectory = () => {
             <div key={employee._id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 border border-gray-100 relative group overflow-hidden">
               <div className="absolute top-0 left-0 w-1 h-full bg-[var(--color-tea-green)] group-hover:bg-[var(--color-tea-dark)] transition-colors"></div>
               <div className="flex items-start space-x-4">
-                <div className="bg-[var(--color-beige)] rounded-full p-3 text-[var(--color-tea-dark)] mt-1 shrink-0">
+                <div className="bg-[var(--color-beige)] rounded-full p-3 text-black mt-1 shrink-0">
                   <UserCircle className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-[var(--color-earth-brown)]">{employee.name}</h3>
-                  <div className="flex items-center text-sm text-[var(--color-tea-dark)] font-medium mt-1">
+                  <h3 className="text-xl font-semibold text-black">{employee.name}</h3>
+                  <div className="flex items-center text-sm text-black font-medium mt-1">
                     <Briefcase className="w-4 h-4 mr-1.5" />
                     {employee.position}
                   </div>
@@ -94,7 +94,7 @@ const CompanyDirectory = () => {
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-100">
-                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-tea-green)] text-[var(--color-tea-dark)]">
+                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-tea-green)] text-black">
                         ID: {employee.employeeId}
                      </span>
                   </div>

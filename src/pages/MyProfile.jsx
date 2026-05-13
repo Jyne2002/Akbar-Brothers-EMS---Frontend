@@ -8,7 +8,11 @@ import { getStoredUser, setStoredUser } from '../utils/auth';
 import { formatPhoneWithExtension } from '../utils/profileCard';
 
 const inputClassName =
-  'mt-1.5 w-full rounded-2xl border border-[var(--color-brand-red)]/20 bg-white px-4 py-2.5 text-sm text-[var(--color-brand-ink)] outline-none transition focus:border-[var(--color-brand-red)] focus:ring-4 focus:ring-[var(--color-brand-red)]/14 disabled:cursor-default disabled:bg-[#faf7f8] disabled:text-black/70';
+  'mt-1.5 w-full rounded-2xl border border-black/10 bg-[#f4f4f4] px-4 py-2.5 text-sm text-black outline-none transition focus:border-black/20 focus:ring-4 focus:ring-black/8 disabled:cursor-default disabled:bg-[#efefef] disabled:text-black/70';
+const primaryButtonClassName =
+  'inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
+const compactPrimaryButtonClassName =
+  'inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
 const PHONE_NUMBER_LENGTH = 10;
 const EXTENSION_NUMBER_MAX_LENGTH = 6;
 const isValidEmailAddress = (value) => String(value || '').trim().includes('@');
@@ -202,19 +206,19 @@ const MyProfile = () => {
   if (loading) {
     return (
       <div className="flex min-h-[55vh] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[var(--color-brand-red-dark)]" />
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-black" />
       </div>
     );
   }
 
   const ProfileCard = () => (
-    <div className="relative overflow-hidden rounded-[2rem] border border-black/6 bg-white p-5 text-[var(--color-earth-brown)] shadow-[0_24px_50px_rgba(16,16,16,0.06)] xl:p-6">
+    <div className="relative overflow-hidden rounded-[2rem] border border-black/6 bg-white p-5 text-black shadow-[0_24px_50px_rgba(16,16,16,0.06)] xl:p-6">
       <div className="absolute -right-10 top-5 h-24 w-24 rounded-full border border-black/5 bg-white/85" />
       <div className="absolute bottom-0 right-0 h-28 w-28 rounded-full bg-white/90 blur-2xl" />
 
       <div className="relative flex h-full flex-col">
         <div className="relative mx-auto h-32 w-32">
-          <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-[5px] border-black/6 bg-white text-3xl font-black text-[var(--color-brand-red-dark)] shadow-sm">
+          <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-[5px] border-black/6 bg-white text-3xl font-black text-black shadow-sm">
             {formData.profileImage ? (
               <img
                 src={formData.profileImage}
@@ -247,11 +251,11 @@ const MyProfile = () => {
           <h1 className="mt-2 text-2xl font-black xl:text-3xl">
             {formData.fullName || profile.fullName || 'Complete your profile'}
           </h1>
-          <p className="mt-1.5 text-sm text-[var(--color-earth-brown)]/78">
+          <p className="mt-1.5 text-sm text-black/78">
             {formData.jobRole || profile.jobRole || 'Employee role will appear here'}
           </p>
           {(formData.phoneNumber || profile.phoneNumber || formData.extensionNumber || profile.extensionNumber) && (
-            <p className="mt-2 text-sm text-[var(--color-earth-brown)]/72">
+            <p className="mt-2 text-sm text-black/72">
               {formatPhoneWithExtension(
                 formData.phoneNumber || profile.phoneNumber,
                 formData.extensionNumber || profile.extensionNumber,
@@ -264,20 +268,19 @@ const MyProfile = () => {
           <ProfileSocialButtons
             linkedinUrl={formData.linkedinUrl}
             phoneNumber={formData.phoneNumber}
-            email={formData.email}
           />
 
           <div className="mt-auto flex flex-wrap items-center justify-center gap-3 pt-6">
             {activeCompany ? (
               <Link
                 to={`/company-info/${encodeURIComponent(activeCompany.code)}`}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-brand-red)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+                className={compactPrimaryButtonClassName}
               >
                 <Building2 className="h-4 w-4" />
                 About {activeCompany.name}
               </Link>
             ) : (
-              <div className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-brand-red)]/14 bg-white px-4 py-3 text-sm font-semibold text-[var(--color-brand-red-dark)]/55">
+              <div className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black/55">
                 <Building2 className="h-4 w-4" />
                 Select a company below
               </div>
@@ -288,7 +291,7 @@ const MyProfile = () => {
                 to={publicCardPath}
                 aria-label="Open mobile share card"
                 title="Open mobile share card"
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-[var(--color-brand-red)]/18 bg-white text-[var(--color-brand-red-dark)] shadow-sm transition hover:bg-[#faf7f8]"
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white text-black shadow-sm transition hover:bg-[#f3f3f3]"
               >
                 <Share2 className="h-5 w-5" />
               </Link>
@@ -305,9 +308,9 @@ const MyProfile = () => {
         <section className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
           <ProfileCard />
 
-          <div className="rounded-[2rem] border border-[var(--color-brand-red)]/10 bg-white p-5 shadow-[0_26px_52px_rgba(89,10,22,0.08)] xl:p-6">
-            <div className="border-b border-[var(--color-brand-red)]/10 pb-4">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-red-dark)]">
+          <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-[0_26px_52px_rgba(0,0,0,0.08)] xl:p-6">
+            <div className="border-b border-black/10 pb-4">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
                 First Login
               </p>
               <h2 className="mt-2 text-2xl font-black text-black xl:text-3xl">Complete your employee visiting card</h2>
@@ -318,7 +321,7 @@ const MyProfile = () => {
             </div>
 
             {error && (
-              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mt-4 rounded-2xl border border-black/10 bg-[#f3f3f3] px-4 py-3 text-sm text-black">
                 {error}
               </div>
             )}
@@ -371,7 +374,7 @@ const MyProfile = () => {
                   maxLength={PHONE_NUMBER_LENGTH}
                   placeholder="0712345678"
                 />
-                {phoneNumberError && <p className="mt-2 text-xs text-red-700">{phoneNumberError}</p>}
+                {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
               </div>
 
               <div>
@@ -382,7 +385,7 @@ const MyProfile = () => {
                   onChange={(event) => handleChange('email', event.target.value)}
                   className={inputClassName}
                 />
-                {emailError && <p className="mt-2 text-xs text-red-700">{emailError}</p>}
+                {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
               </div>
 
               <div>
@@ -397,7 +400,7 @@ const MyProfile = () => {
                   maxLength={EXTENSION_NUMBER_MAX_LENGTH}
                   placeholder="247"
                 />
-                {extensionNumberError && <p className="mt-2 text-xs text-red-700">{extensionNumberError}</p>}
+                {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
               </div>
 
               <div className="md:col-span-2">
@@ -430,7 +433,7 @@ const MyProfile = () => {
 
             <button
               onClick={handleSave}
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--color-brand-red)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
             >
               <Save className="h-4 w-4" />
               Create My Profile
@@ -441,10 +444,10 @@ const MyProfile = () => {
         <section className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
           <ProfileCard />
 
-          <div className="rounded-[2rem] border border-[var(--color-brand-red)]/10 bg-white p-5 shadow-[0_26px_52px_rgba(89,10,22,0.08)] xl:p-6">
-            <div className="flex flex-col gap-3 border-b border-[var(--color-brand-red)]/10 pb-4 md:flex-row md:items-center md:justify-between">
+          <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-[0_26px_52px_rgba(0,0,0,0.08)] xl:p-6">
+            <div className="flex flex-col gap-3 border-b border-black/10 pb-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-red-dark)]">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
                   {isViewingManagedProfile ? 'Admin View' : 'Home'}
                 </p>
                 <h2 className="mt-2 text-2xl font-black text-black xl:text-3xl">
@@ -461,14 +464,14 @@ const MyProfile = () => {
                 {isViewingManagedProfile ? (
                   <Link
                     to="/admin"
-                    className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#faf7f8]"
+                    className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
                   >
                     Back to Admin Panel
                   </Link>
                 ) : !isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="rounded-full bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+                    className={primaryButtonClassName}
                   >
                     Edit details
                   </button>
@@ -476,13 +479,13 @@ const MyProfile = () => {
                   <>
                     <button
                       onClick={handleCancel}
-                      className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#faf7f8]"
+                      className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSave}
-                      className="inline-flex items-center gap-2 rounded-full bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+                      className={primaryButtonClassName}
                     >
                       <Save className="h-4 w-4" />
                       Save changes
@@ -493,13 +496,13 @@ const MyProfile = () => {
             </div>
 
             {error && (
-              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mt-4 rounded-2xl border border-black/10 bg-[#f3f3f3] px-4 py-3 text-sm text-black">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="mt-4 rounded-2xl border border-black/8 bg-white px-4 py-3 text-sm text-[var(--color-brand-red-dark)] shadow-sm">
+              <div className="mt-4 rounded-2xl border border-black/8 bg-white px-4 py-3 text-sm text-black shadow-sm">
                 {success}
               </div>
             )}
@@ -556,7 +559,7 @@ const MyProfile = () => {
                   placeholder="0712345678"
                   disabled={isViewingManagedProfile || !isEditing}
                 />
-                {phoneNumberError && <p className="mt-2 text-xs text-red-700">{phoneNumberError}</p>}
+                {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
               </div>
 
               <div>
@@ -568,7 +571,7 @@ const MyProfile = () => {
                   className={inputClassName}
                   disabled={isViewingManagedProfile || !isEditing}
                 />
-                {emailError && <p className="mt-2 text-xs text-red-700">{emailError}</p>}
+                {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
               </div>
 
               <div>
@@ -584,7 +587,7 @@ const MyProfile = () => {
                   placeholder="247"
                   disabled={isViewingManagedProfile || !isEditing}
                 />
-                {extensionNumberError && <p className="mt-2 text-xs text-red-700">{extensionNumberError}</p>}
+                {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
               </div>
 
               <div className="md:col-span-2">
