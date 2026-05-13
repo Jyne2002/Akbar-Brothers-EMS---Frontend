@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Building2, Camera, Save, Share2 } from 'lucide-react';
 import ProfileSocialButtons from '../components/ProfileSocialButtons';
@@ -39,17 +39,42 @@ const emptyProfile = {
   profileCompleted: false,
 };
 
+const hydrateCachedProfile = (user) => ({
+  ...emptyProfile,
+  ...(user || {}),
+  profileCompleted: Boolean(user?.profileCompleted),
+});
+
 const MyProfile = () => {
   const { userId } = useParams();
-  const userInfo = getStoredUser();
+  const storedUserRef = useRef(getStoredUser());
+  const userInfo = storedUserRef.current;
   const isViewingManagedProfile = Boolean(userId);
   const isOwnProfile = !isViewingManagedProfile;
-  const [profile, setProfile] = useState(emptyProfile);
-  const [formData, setFormData] = useState(emptyProfile);
-  const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+  const cachedOwnProfile = useMemo(
+    () => (isOwnProfile && userInfo ? hydrateCachedProfile(userInfo) : emptyProfile),
+    [isOwnProfile, userInfo],
+  );
+  const hasCachedOwnProfile = isOwnProfile && Boolean(userInfo?.token);
+  const [profile, setProfile] = useState(cachedOwnProfile);
+  const [formData, setFormData] = useState(cachedOwnProfile);
+  const [loading, setLoading] = useState(!hasCachedOwnProfile);
+  const [isEditing, setIsEditing] = useState(
+    isOwnProfile ? !cachedOwnProfile.profileCompleted : false,
+  );
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const hasLocalChangesRef = useRef(false);
+
+  useEffect(() => {
+    setProfile(cachedOwnProfile);
+    setFormData(cachedOwnProfile);
+    setLoading(!hasCachedOwnProfile);
+    setIsEditing(isOwnProfile ? !cachedOwnProfile.profileCompleted : false);
+    setError('');
+    setSuccess('');
+    hasLocalChangesRef.current = false;
+  }, [cachedOwnProfile, hasCachedOwnProfile, isOwnProfile, userId]);
 
   useEffect(() => {
     if (!success) {
@@ -65,9 +90,14 @@ const MyProfile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      const shouldBlockRender = !hasCachedOwnProfile || isViewingManagedProfile;
+
       try {
-        setLoading(true);
-        setError('');
+        if (shouldBlockRender) {
+          setLoading(true);
+          setError('');
+        }
+
         const config = {
           headers: { Authorization: `Bearer ${userInfo?.token}` },
         };
@@ -81,17 +111,24 @@ const MyProfile = () => {
         }
 
         setProfile(data);
-        setFormData(data);
-        setIsEditing(isOwnProfile ? !data.profileCompleted : false);
+        setFormData((currentValue) => (hasLocalChangesRef.current ? currentValue : data));
+        setIsEditing((currentValue) =>
+          hasLocalChangesRef.current ? currentValue : isOwnProfile ? !data.profileCompleted : false,
+        );
+        setError('');
       } catch (fetchError) {
-        setError(fetchError.response?.data?.message || 'Failed to load profile');
+        if (shouldBlockRender) {
+          setError(fetchError.response?.data?.message || 'Failed to load profile');
+        } else {
+          console.error('Failed to refresh profile', fetchError);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-  }, [isOwnProfile, isViewingManagedProfile, userId, userInfo?.token]);
+  }, [hasCachedOwnProfile, isOwnProfile, isViewingManagedProfile, userId, userInfo?.token]);
 
   const handleChange = (field, value) => {
     const nextValue =
@@ -101,6 +138,7 @@ const MyProfile = () => {
           ? value.replace(/\D/g, '').slice(0, EXTENSION_NUMBER_MAX_LENGTH)
           : value;
 
+    hasLocalChangesRef.current = true;
     setError('');
     setSuccess('');
     setFormData((currentValue) => ({
@@ -117,6 +155,7 @@ const MyProfile = () => {
 
     const reader = new FileReader();
     reader.onload = () => {
+      hasLocalChangesRef.current = true;
       setFormData((currentValue) => ({
         ...currentValue,
         profileImage: reader.result?.toString() || '',
@@ -159,6 +198,7 @@ const MyProfile = () => {
       setProfile(data);
       setFormData(data);
       setIsEditing(false);
+      hasLocalChangesRef.current = false;
       setSuccess(
         data.profileCompleted
           ? 'Your profile has been saved successfully.'
@@ -170,6 +210,7 @@ const MyProfile = () => {
   };
 
   const handleCancel = () => {
+    hasLocalChangesRef.current = false;
     setFormData(profile);
     setIsEditing(false);
     setError('');

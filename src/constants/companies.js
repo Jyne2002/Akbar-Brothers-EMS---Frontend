@@ -1,5 +1,5 @@
 const AKBAR_COMPANY_OVERVIEW =
-  "Akbar Brothers is a family-owned Sri Lankan business founded in 1969 and widely recognized as the world's largest exporter of Ceylon tea. Alongside its tea heritage, the group operates across renewable energy, healthcare, packaging, property development, and environmental services with a strong focus on quality, innovation, and long-term sustainability.";
+  "Akbar Brothers (Pvt) Ltd is Sri Lanka's Largest Tea Exporter and one of the country's most respected diversified conglomerates. Established in 1969, the family-owned enterprise has grown from a tea trading business into a global organisation with interests spanning sustainable power generation, healthcare, packaging, property development, environmental services and international trade.";
 
 const FALCON_COMPANY_OVERVIEW =
   "Falcon Trading (Pvt) Ltd is a leading Sri Lankan distributor serving the bakery and confectionery industry with an island-wide supply network. The company imports and distributes premium margarine, shortening, palm olein, yeast, bread improvers, flavours, colours, cocoa powder, canned fish, and other trusted ingredients sourced from globally recognized manufacturers and local partners.";

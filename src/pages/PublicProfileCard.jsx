@@ -58,6 +58,13 @@ const PublicProfileCard = () => {
   const companyLogoAlt = company?.companyName
     ? `${company.companyName} corporate logo`
     : 'Akbar Brothers corporate logo';
+  const usesAkbarCompanyFooterLogo = company?.code === 'A' || company?.code === 'C';
+  const footerLogoSrc = usesAkbarCompanyFooterLogo
+    ? '/akbar-brand-logo.png'
+    : '/akbar-corporate-logo.png';
+  const footerLogoAlt = usesAkbarCompanyFooterLogo
+    ? 'Akbar Brothers brand logo'
+    : 'Akbar Brothers corporate logo';
 
   const socialLinks = useMemo(
     () =>
@@ -216,6 +223,8 @@ const PublicProfileCard = () => {
           profile={profile}
           companyLogoSrc={companyLogoSrc}
           companyLogoAlt={companyLogoAlt}
+          footerLogoSrc={footerLogoSrc}
+          footerLogoAlt={footerLogoAlt}
           profileRows={profileRows}
           initials={initials}
           publicCompanyInfoPath={publicCompanyInfoPath}

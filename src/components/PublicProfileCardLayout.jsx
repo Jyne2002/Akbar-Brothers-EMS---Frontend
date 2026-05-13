@@ -6,6 +6,8 @@ const PublicProfileCardLayout = ({
   profile,
   companyLogoSrc,
   companyLogoAlt,
+  footerLogoSrc,
+  footerLogoAlt,
   profileRows,
   initials,
   publicCompanyInfoPath,
@@ -120,7 +122,7 @@ const PublicProfileCardLayout = ({
             )}
           </div>
 
-          <div className="mt-4 border-t border-black/10 px-1 pb-4 pt-3">
+          <div className="mt-3 border-t border-black/10 px-1 pb-2.5 pt-3">
             <div className="flex items-center justify-center gap-3">
               {socialLinks.map((link) => (
                 <a
@@ -204,6 +206,16 @@ const PublicProfileCardLayout = ({
                 {notice}
               </p>
             )}
+
+            {footerLogoSrc ? (
+              <div className="mt-2 flex justify-center">
+                <img
+                  src={footerLogoSrc}
+                  alt={footerLogoAlt || 'Akbar Brothers logo'}
+                  className="h-12 w-auto max-w-[13rem] object-contain"
+                />
+              </div>
+            ) : null}
           </div>
         </>
       )}
