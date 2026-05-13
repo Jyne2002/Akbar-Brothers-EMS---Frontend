@@ -324,7 +324,7 @@ const MyProfile = () => {
             alt={profileCardLogoAlt}
             className="mx-auto h-11 w-auto object-contain"
           />
-          <h1 className="mt-2 text-2xl font-black xl:text-3xl">
+          <h1 className="mt-2 text-2xl font-extrabold xl:text-3xl">
             {formData.fullName || profile.fullName || 'Complete your profile'}
           </h1>
           <p className="mt-1.5 text-sm text-black/78">
