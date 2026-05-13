@@ -9,7 +9,6 @@ import {
   downloadProfileAsJpg,
   downloadProfileAsPdf,
   downloadProfileAsVcf,
-  formatPhoneWithExtension,
   getWhatsappUrl,
   normalizeLinkedinUrl,
 } from '../utils/profileCard';
@@ -82,7 +81,8 @@ const PublicProfileCard = () => {
     () => [
       {
         label: 'Phone',
-        value: formatPhoneWithExtension(profile?.phoneNumber, profile?.extensionNumber) || 'Not shared yet',
+        value: profile?.phoneNumber || 'Not shared yet',
+        extension: profile?.phoneNumber ? profile?.extensionNumber || '' : '',
       },
       { label: 'E-mail', value: profile?.email || 'Not shared yet' },
     ],
@@ -207,8 +207,8 @@ const PublicProfileCard = () => {
   }
 
   return (
-    <div className="flex min-h-[100dvh] items-center bg-[radial-gradient(circle_at_top,_rgba(233,198,204,0.55)_0%,_rgba(250,246,243,0.92)_38%,_#f7f0eb_100%)] px-4 py-3">
-      <div className="mx-auto max-w-[21.75rem]">
+    <div className="min-h-[100svh] bg-[radial-gradient(circle_at_top,_rgba(233,198,204,0.55)_0%,_rgba(250,246,243,0.92)_38%,_#f7f0eb_100%)] px-3 py-2 md:flex md:min-h-[100dvh] md:items-center md:px-4 md:py-3">
+      <div className="mx-auto w-full max-w-[22.5rem]">
         <PublicProfileCardLayout
           profile={profile}
           companyLogoSrc={companyLogoSrc}
