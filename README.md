@@ -1,16 +1,31 @@
-# React + Vite
+# Akbar Brothers EMS Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## API configuration
 
-Currently, two official plugins are available:
+This app reads the backend base URL from `VITE_API_BASE_URL`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- The default backend URL is `https://akbar-brothers-ems-backend.onrender.com`.
+- Production builds use [.env.production](./.env.production), which currently points to `https://akbar-brothers-ems-backend.onrender.com`.
+- When deploying the frontend, add `VITE_API_BASE_URL=https://akbar-brothers-ems-backend.onrender.com` in your hosting provider's environment variables.
 
-## React Compiler
+To override the backend URL manually, create `.env` in the frontend directory with:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```env
+VITE_API_BASE_URL=https://your-backend-url
+```
 
-## Expanding the ESLint configuration
+## Deployment
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Before deploying the frontend, make sure your hosting platform has this environment variable:
+
+```env
+VITE_API_BASE_URL=https://akbar-brothers-ems-backend.onrender.com
+```
+
+After adding or changing the variable, redeploy the frontend so Vite rebuilds with the updated backend URL.
+
+## Commands
+
+- `npm run dev`
+- `npm run build`
+- `npm run preview`

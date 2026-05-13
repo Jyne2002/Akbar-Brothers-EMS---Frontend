@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { ArrowRight, Building2, Users } from 'lucide-react';
 import { COMPANIES } from '../constants/companies';
+import api from '../utils/api';
 import { getStoredUser } from '../utils/auth';
 
 const Home = () => {
@@ -15,7 +15,7 @@ const Home = () => {
         const config = {
           headers: { Authorization: `Bearer ${userInfo?.token}` },
         };
-        const { data } = await axios.get('http://localhost:5000/api/employees', config);
+        const { data } = await api.get('/api/employees', config);
 
         const counts = data.reduce((accumulator, employee) => {
           accumulator[employee.company] = (accumulator[employee.company] || 0) + 1;

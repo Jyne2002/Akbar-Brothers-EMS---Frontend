@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import axios from 'axios';
 import { Building2, Camera, Save, Share2 } from 'lucide-react';
 import ProfileSocialButtons from '../components/ProfileSocialButtons';
 import { COMPANIES, getCompanyByValue } from '../constants/companies';
+import api from '../utils/api';
 import { getStoredUser, setStoredUser } from '../utils/auth';
 
 const inputClassName =
@@ -64,9 +64,9 @@ const MyProfile = () => {
           headers: { Authorization: `Bearer ${userInfo?.token}` },
         };
         const endpoint = isViewingManagedProfile
-          ? `http://localhost:5000/api/auth/users/${userId}`
-          : 'http://localhost:5000/api/auth/profile';
-        const { data } = await axios.get(endpoint, config);
+          ? `/api/auth/users/${userId}`
+          : '/api/auth/profile';
+        const { data } = await api.get(endpoint, config);
 
         if (isOwnProfile) {
           setStoredUser(data);
@@ -137,7 +137,7 @@ const MyProfile = () => {
         headers: { Authorization: `Bearer ${userInfo?.token}` },
       };
 
-      const { data } = await axios.put('http://localhost:5000/api/auth/profile', formData, config);
+      const { data } = await api.put('/api/auth/profile', formData, config);
       setStoredUser(data);
       setProfile(data);
       setFormData(data);

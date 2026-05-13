@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Briefcase, Building2, Eye, Mail, Phone, RefreshCw, Search, Users } from 'lucide-react';
 import { COMPANIES, getCompanyCode, getCompanyLabel } from '../constants/companies';
+import api from '../utils/api';
 import { getStoredUser } from '../utils/auth';
 
 const inputClassName =
@@ -73,7 +73,7 @@ const AdminPanel = () => {
   const fetchUsers = useCallback(async () => {
     try {
       setLoadingUsers(true);
-      const { data } = await axios.get('http://localhost:5000/api/auth/users', requestConfig);
+      const { data } = await api.get('/api/auth/users', requestConfig);
       setUsers(data);
     } catch (fetchError) {
       setError(fetchError.response?.data?.message || 'Failed to load users');
@@ -133,11 +133,7 @@ const AdminPanel = () => {
     try {
       setError('');
       setSuccess('');
-      await axios.put(
-        `http://localhost:5000/api/auth/users/${user._id}/role`,
-        { role: nextRole },
-        requestConfig,
-      );
+      await api.put(`/api/auth/users/${user._id}/role`, { role: nextRole }, requestConfig);
       await fetchUsers();
       setSuccess(
         `${user.fullName || user.employeeNumber} is now ${
@@ -169,7 +165,7 @@ const AdminPanel = () => {
     try {
       setError('');
       setSuccess('');
-      await axios.delete(`http://localhost:5000/api/auth/users/${user._id}`, requestConfig);
+      await api.delete(`/api/auth/users/${user._id}`, requestConfig);
       await fetchUsers();
       setSuccess(`${user.fullName || user.employeeNumber} was removed from the system.`);
     } catch (deleteError) {

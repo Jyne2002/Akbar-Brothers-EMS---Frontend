@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
 import { Briefcase, Building2, MapPin, Phone, Search, UserCircle } from 'lucide-react';
 import { getCompanyLabel } from '../constants/companies';
+import api from '../utils/api';
 import { getStoredUser } from '../utils/auth';
 
 const SearchResults = () => {
@@ -24,10 +24,7 @@ const SearchResults = () => {
         const config = {
           headers: { Authorization: `Bearer ${userInfo?.token}` },
         };
-        const { data } = await axios.get(
-          `http://localhost:5000/api/employees?search=${encodeURIComponent(query)}`,
-          config,
-        );
+        const { data } = await api.get(`/api/employees?search=${encodeURIComponent(query)}`, config);
         setEmployees(data);
       } catch (error) {
         console.error('Failed to search employees', error);

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
 import { Search, UserCircle, MapPin, Phone, Briefcase } from 'lucide-react';
 import { getCompanyLabel } from '../constants/companies';
+import api from '../utils/api';
 import { getStoredUser } from '../utils/auth';
 
 const CompanyDirectory = () => {
@@ -22,7 +22,7 @@ const CompanyDirectory = () => {
         const config = {
           headers: { Authorization: `Bearer ${userInfo?.token}` }
         };
-        const { data } = await axios.get(`http://localhost:5000/api/employees?company=${decodedCompany}&search=${searchTerm}`, config);
+        const { data } = await api.get(`/api/employees?company=${decodedCompany}&search=${searchTerm}`, config);
         setEmployees(data);
       } catch (error) {
         console.error("Failed to fetch employees", error);

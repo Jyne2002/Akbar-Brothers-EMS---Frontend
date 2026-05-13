@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
 import AuthSliderLayout from '../components/AuthSliderLayout';
+import api from '../utils/api';
 import { setStoredUser } from '../utils/auth';
 
 const inputClassName =
@@ -25,7 +25,7 @@ const Register = () => {
 
     try {
       setError('');
-      const { data } = await axios.post('http://localhost:5000/api/auth/register', {
+      const { data } = await api.post('/api/auth/register', {
         employeeNumber,
         password,
         isAdmin,

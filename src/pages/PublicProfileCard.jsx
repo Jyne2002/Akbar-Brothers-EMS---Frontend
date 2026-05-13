@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import PublicProfileCardLayout from '../components/PublicProfileCardLayout';
 import { getCompanyByValue } from '../constants/companies';
+import api from '../utils/api';
 import {
   buildPublicCompanyInfoUrl,
   buildPublicProfileUrl,
@@ -40,7 +40,7 @@ const PublicProfileCard = () => {
       try {
         setLoading(true);
         setError('');
-        const { data } = await axios.get(`http://localhost:5000/api/auth/public-profile/${shareSlug}`);
+        const { data } = await api.get(`/api/auth/public-profile/${shareSlug}`);
         setProfile(data);
       } catch (fetchError) {
         setError(fetchError.response?.data?.message || 'We could not load this visiting card.');
