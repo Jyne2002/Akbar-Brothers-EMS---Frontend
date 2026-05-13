@@ -70,6 +70,26 @@ const CompanyInfo = () => {
               <CompanyActionButtons company={company} />
             </div>
 
+            {company.address || company.websiteLabel ? (
+              <div className="mt-5 max-w-2xl text-left">
+                {company.address ? (
+                  <p className="text-sm leading-6 text-black/78">{company.address}</p>
+                ) : null}
+                {company.websiteLabel ? (
+                  <p className="mt-2">
+                    <a
+                      href={company.websiteUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-semibold text-black underline underline-offset-2"
+                    >
+                      {company.websiteLabel}
+                    </a>
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/profile"

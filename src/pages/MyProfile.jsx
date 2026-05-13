@@ -23,6 +23,26 @@ const getExtensionNumberError = (value) =>
   value && !/^\d{1,6}$/.test(String(value || '').trim()) ? 'EXT number must be 1 to 6 digits' : '';
 const getEmailError = (value) =>
   value && !isValidEmailAddress(value) ? 'Email address must include @' : '';
+const getApiErrorMessage = (error, fallbackMessage, managedProfileFallbackMessage = '') => {
+  const responseData = error?.response?.data;
+
+  if (typeof responseData === 'string' && responseData.trim()) {
+    return responseData;
+  }
+
+  if (responseData?.message) {
+    return responseData.message;
+  }
+
+  if (
+    managedProfileFallbackMessage &&
+    [404, 405, 501].includes(Number(error?.response?.status || 0))
+  ) {
+    return managedProfileFallbackMessage;
+  }
+
+  return error?.message || fallbackMessage;
+};
 
 const emptyProfile = {
   employeeNumber: '',
@@ -113,12 +133,22 @@ const MyProfile = () => {
         setProfile(data);
         setFormData((currentValue) => (hasLocalChangesRef.current ? currentValue : data));
         setIsEditing((currentValue) =>
-          hasLocalChangesRef.current ? currentValue : isOwnProfile ? !data.profileCompleted : false,
+          hasLocalChangesRef.current
+            ? currentValue
+            : isOwnProfile
+              ? !data.profileCompleted
+              : false,
         );
         setError('');
       } catch (fetchError) {
         if (shouldBlockRender) {
-          setError(fetchError.response?.data?.message || 'Failed to load profile');
+          setError(
+            getApiErrorMessage(
+              fetchError,
+              'Failed to load profile',
+              'This admin profile route is not available on the current backend yet.',
+            ),
+          );
         } else {
           console.error('Failed to refresh profile', fetchError);
         }
@@ -128,7 +158,13 @@ const MyProfile = () => {
     };
 
     fetchProfile();
-  }, [hasCachedOwnProfile, isOwnProfile, isViewingManagedProfile, userId, userInfo?.token]);
+  }, [
+    hasCachedOwnProfile,
+    isOwnProfile,
+    isViewingManagedProfile,
+    userId,
+    userInfo?.token,
+  ]);
 
   const handleChange = (field, value) => {
     const nextValue =
@@ -205,7 +241,7 @@ const MyProfile = () => {
           : 'Please complete all required fields before saving.',
       );
     } catch (saveError) {
-      setError(saveError.response?.data?.message || 'Failed to save profile details');
+      setError(getApiErrorMessage(saveError, 'Failed to save profile details'));
     }
   };
 
@@ -493,21 +529,23 @@ const MyProfile = () => {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                {isViewingManagedProfile ? (
+                {isViewingManagedProfile && (
                   <Link
                     to="/admin"
                     className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
                   >
                     Back to Admin Panel
                   </Link>
-                ) : !isEditing ? (
+                )}
+
+                {!isViewingManagedProfile && !isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
                     className={primaryButtonClassName}
                   >
                     Edit details
                   </button>
-                ) : (
+                ) : !isViewingManagedProfile ? (
                   <>
                     <button
                       onClick={handleCancel}
@@ -523,7 +561,7 @@ const MyProfile = () => {
                       Save changes
                     </button>
                   </>
-                )}
+                ) : null}
               </div>
             </div>
 

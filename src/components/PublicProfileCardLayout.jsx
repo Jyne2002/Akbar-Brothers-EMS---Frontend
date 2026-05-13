@@ -126,7 +126,7 @@ const PublicProfileCardLayout = ({
             </div>
           </div>
 
-          <div className="mt-3 border-t border-black/10 px-1 pb-2.5 pt-3">
+          <div className="mt-3 px-1 pb-2.5 pt-3">
             {downloadMenuOpen && (
               <div className="mb-3 grid grid-cols-3 gap-2">
                 <button
@@ -186,38 +186,40 @@ const PublicProfileCardLayout = ({
               </button>
             </div>
 
-            <div className="mt-3 flex justify-center">
-              {publicCompanyInfoPath ? (
-                <Link
-                  to={publicCompanyInfoPath}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-brand-red)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(142,20,36,0.24)] transition hover:bg-[var(--color-brand-red-dark)]"
-                >
-                  <Building2 className="h-4 w-4" />
-                  About Company
-                </Link>
-              ) : (
-                <div className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f4f4f4] px-5 py-2.5 text-sm font-semibold text-black/55">
-                  <Building2 className="h-4 w-4" />
-                  Company information unavailable
-                </div>
-              )}
-            </div>
-
-            {notice && (
-              <p className="mt-2.5 text-center text-sm font-medium text-black">
-                {notice}
-              </p>
-            )}
-
-            {footerLogoSrc ? (
-              <div className="mt-2 flex justify-center">
-                <img
-                  src={footerLogoSrc}
-                  alt={footerLogoAlt || 'Akbar Brothers logo'}
-                  className="h-12 w-auto max-w-[13rem] object-contain"
-                />
+            <div className="mt-3 border-t border-black/10 pt-3">
+              <div className="flex justify-center">
+                {publicCompanyInfoPath ? (
+                  <Link
+                    to={publicCompanyInfoPath}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-brand-red)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(142,20,36,0.24)] transition hover:bg-[var(--color-brand-red-dark)]"
+                  >
+                    <Building2 className="h-4 w-4" />
+                    About Company
+                  </Link>
+                ) : (
+                  <div className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f4f4f4] px-5 py-2.5 text-sm font-semibold text-black/55">
+                    <Building2 className="h-4 w-4" />
+                    Company information unavailable
+                  </div>
+                )}
               </div>
-            ) : null}
+
+              {notice && (
+                <p className="mt-2.5 text-center text-sm font-medium text-black">
+                  {notice}
+                </p>
+              )}
+
+              {footerLogoSrc ? (
+                <div className="mt-2 flex justify-center">
+                  <img
+                    src={footerLogoSrc}
+                    alt={footerLogoAlt || 'Akbar Brothers logo'}
+                    className="h-12 w-auto max-w-[13rem] object-contain"
+                  />
+                </div>
+              ) : null}
+            </div>
           </div>
         </>
       )}

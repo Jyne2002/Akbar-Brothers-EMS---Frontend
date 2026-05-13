@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, Building2, Eye, Mail, Phone, RefreshCw, Search, Users } from 'lucide-react';
+import {
+  Briefcase,
+  Building2,
+  Eye,
+  Mail,
+  Phone,
+  RefreshCw,
+  Search,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { COMPANIES, getCompanyCode, getCompanyLabel } from '../constants/companies';
 import api from '../utils/api';
 import { getStoredUser } from '../utils/auth';
@@ -499,11 +509,19 @@ const AdminPanel = () => {
                     <div className="flex flex-wrap gap-3">
                       <Link
                         to={`/admin/profile/${user._id}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+                        className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
                       >
                         <Eye className="h-4 w-4" />
                         View profile
                       </Link>
+                      <button
+                        onClick={() => handleDeleteUser(user)}
+                        disabled={user._id === userInfo?._id}
+                        className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete
+                      </button>
                     </div>
                   </div>
                 </div>

@@ -34,37 +34,56 @@ const PublicCompanyInfo = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,_#fdfaf8_0%,_#f6ece5_100%)] px-4 py-6">
-      <section className="mx-auto max-w-sm rounded-[2.3rem] border border-[var(--color-brand-red)]/10 bg-white p-6 shadow-[0_26px_54px_rgba(89,10,22,0.08)]">
-        <div className="flex min-h-[15rem] items-center justify-center px-4 py-4">
+    <div className="min-h-[100svh] bg-[linear-gradient(180deg,_#fdfaf8_0%,_#f6ece5_100%)] px-3 py-3 md:flex md:min-h-[100dvh] md:items-center md:px-4 md:py-6">
+      <section className="mx-auto max-w-sm rounded-[2.15rem] border border-[var(--color-brand-red)]/10 bg-white p-4 shadow-[0_22px_44px_rgba(89,10,22,0.08)] sm:p-5">
+        <div className="flex min-h-[7.75rem] items-center justify-center px-2 py-0.5 sm:min-h-[10.5rem] sm:px-3 sm:py-2">
           {showLogo ? (
             <img
               src={company.logo}
               alt={`${company.companyName} corporate logo`}
-              className="mx-auto h-40 w-auto object-contain"
+              className="mx-auto h-24 w-auto object-contain sm:h-[7.5rem]"
               onError={() => setShowLogo(false)}
             />
           ) : (
-            <div className="flex h-52 w-full flex-col items-center justify-center rounded-[2rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] px-6 text-center text-black">
-              <Building2 className="h-14 w-14" />
-              <p className="mt-4 text-lg font-bold text-black">{company.name}</p>
+            <div className="flex h-40 w-full flex-col items-center justify-center rounded-[1.8rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] px-5 text-center text-black sm:h-44">
+              <Building2 className="h-12 w-12" />
+              <p className="mt-3 text-base font-bold text-black">{company.name}</p>
             </div>
           )}
         </div>
 
-        <div className="mt-2 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
+        <div className="mt-0.5 text-center">
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-black">
             Company Details
           </p>
-          <h1 className="mt-3 text-3xl font-black text-black">About {company.name}</h1>
-          <p className="mt-4 text-sm leading-7 text-black/74">{company.companyOverview}</p>
+          <p className="mt-2 text-[0.93rem] leading-6 text-black/74">{company.companyOverview}</p>
         </div>
 
-        <div className="mt-7">
+        <div className="mt-4">
           <CompanyActionButtons company={company} size="compact" centered />
         </div>
 
-        <div className="mt-8 flex justify-center">
+        {company.address || company.websiteLabel ? (
+          <div className="mt-4 text-center">
+            {company.address ? (
+              <p className="text-sm leading-6 text-black/78">{company.address}</p>
+            ) : null}
+            {company.websiteLabel ? (
+              <p className="mt-1.5">
+                <a
+                  href={company.websiteUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm font-semibold text-black underline underline-offset-2"
+                >
+                  {company.websiteLabel}
+                </a>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="mt-4 flex justify-center">
           <Link
             to={`/card/${shareSlug}`}
             className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#faf7f8]"
