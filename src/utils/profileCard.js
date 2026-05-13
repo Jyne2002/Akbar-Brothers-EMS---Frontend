@@ -44,8 +44,23 @@ export const getOutlookUrl = (email) => {
   const trimmedEmail = typeof email === 'string' ? email.trim() : '';
 
   return trimmedEmail
-    ? `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(trimmedEmail)}`
+      ? `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(trimmedEmail)}`
     : '';
+};
+
+export const formatPhoneWithExtension = (phoneNumber, extensionNumber) => {
+  const normalizedPhoneNumber = String(phoneNumber || '').trim();
+  const normalizedExtensionNumber = String(extensionNumber || '').trim();
+
+  if (normalizedPhoneNumber && normalizedExtensionNumber) {
+    return `${normalizedPhoneNumber} | EXT ${normalizedExtensionNumber}`;
+  }
+
+  if (normalizedExtensionNumber) {
+    return `EXT ${normalizedExtensionNumber}`;
+  }
+
+  return normalizedPhoneNumber;
 };
 
 export const buildPublicProfileUrl = (shareSlug) => {
@@ -296,12 +311,12 @@ const createCardArtwork = async (profile, company) => {
   const boxPadding = 16;
   const valueColumnX = boxX + boxPadding + labelColumnWidth + rowGap;
   const valueColumnWidth = boxWidth - boxPadding * 2 - labelColumnWidth - rowGap;
+  const departmentValue = String(profile.department || '').trim();
+  const jobRoleValue = String(profile.jobRole || '').trim();
+  const phoneValue = formatPhoneWithExtension(profile.phoneNumber, profile.extensionNumber);
   const details = [
-    { label: 'Position', value: profile.jobRole || 'Not shared yet' },
-    { label: 'Department', value: profile.department || 'Not shared yet' },
-    { label: 'Phone', value: profile.phoneNumber || 'Not shared yet' },
+    { label: 'Phone', value: phoneValue || 'Not shared yet' },
     { label: 'E-mail', value: profile.email || 'Not shared yet' },
-    { label: 'Company', value: company?.companyName || getCompanyLabel(profile.company) || 'Akbar Brothers' },
   ];
 
   const measurementCanvas = document.createElement('canvas');
@@ -313,14 +328,26 @@ const createCardArtwork = async (profile, company) => {
 
   measurementContext.font = '600 15px Inter, Arial, sans-serif';
   const nameMaxWidth = 248;
-  const nameLines = wrapText(
-    measurementContext,
-    profile.fullName || 'Employee Card',
-    nameMaxWidth,
-  );
-  const nameLineHeight = 36;
+  const nameLines = wrapText(measurementContext, profile.fullName || 'Employee Card', nameMaxWidth);
+  const nameLineHeight = 34;
   const nameHeight = nameLines.length * nameLineHeight;
 
+  measurementContext.font = '700 12px Inter, Arial, sans-serif';
+  const departmentLines = departmentValue
+    ? wrapText(measurementContext, departmentValue.toUpperCase(), 270)
+    : [];
+  const departmentLineHeight = 18;
+  const departmentHeight = departmentLines.length * departmentLineHeight;
+
+  measurementContext.font = '700 18px Inter, Arial, sans-serif';
+  const jobRoleLines = jobRoleValue ? wrapText(measurementContext, jobRoleValue, 270) : [];
+  const jobRoleLineHeight = 25;
+  const jobRoleHeight = jobRoleLines.length * jobRoleLineHeight;
+  const subtitleGap =
+    departmentLines.length > 0 && jobRoleLines.length > 0 ? 4 : 0;
+  const subtitleHeight = departmentHeight + jobRoleHeight + subtitleGap;
+
+  measurementContext.font = '600 15px Inter, Arial, sans-serif';
   const detailMeasurements = details.map((detail) => {
     const lines = wrapText(measurementContext, detail.value, valueColumnWidth);
     const rowContentHeight = Math.max(18, lines.length * 24);
@@ -339,7 +366,7 @@ const createCardArtwork = async (profile, company) => {
         totalHeight + detail.rowContentHeight + (index < detailMeasurements.length - 1 ? 12 : 0),
       0,
     );
-  const boxTop = nameTop + nameHeight + 22;
+  const boxTop = nameTop + nameHeight + (subtitleHeight ? 16 + subtitleHeight : 0) + 22;
   const cardHeight = boxTop - cardY + detailsHeight + 28;
   const logicalHeight = Math.ceil(cardY + cardHeight + pagePadding);
 
@@ -394,8 +421,8 @@ const createCardArtwork = async (profile, company) => {
 
   try {
     const logoImage = await loadImage(logoSource);
-    const maxLogoHeight = 74;
-    const maxLogoWidth = 240;
+    const maxLogoHeight = 88;
+    const maxLogoWidth = 260;
     const logoRatio = Math.min(maxLogoWidth / logoImage.width, maxLogoHeight / logoImage.height);
     const logoWidth = logoImage.width * logoRatio;
     const logoHeight = logoImage.height * logoRatio;
@@ -472,6 +499,25 @@ const createCardArtwork = async (profile, company) => {
   context.textAlign = 'center';
   context.textBaseline = 'top';
   drawWrappedText(context, nameLines, logicalWidth / 2, nameTop, nameLineHeight);
+
+  let subtitleTop = nameTop + nameHeight + 16;
+
+  if (departmentLines.length > 0) {
+    context.fillStyle = 'rgba(180,31,49,0.84)';
+    context.font = '700 12px Inter, Arial, sans-serif';
+    drawWrappedText(context, departmentLines, logicalWidth / 2, subtitleTop, departmentLineHeight);
+    subtitleTop += departmentHeight;
+  }
+
+  if (jobRoleLines.length > 0) {
+    if (departmentLines.length > 0) {
+      subtitleTop += subtitleGap;
+    }
+
+    context.fillStyle = 'rgba(21,21,21,0.8)';
+    context.font = '700 18px Inter, Arial, sans-serif';
+    drawWrappedText(context, jobRoleLines, logicalWidth / 2, subtitleTop, jobRoleLineHeight);
+  }
 
   const boxHeight = detailsHeight;
   drawRoundedRectanglePath(context, boxX, boxTop, boxWidth, boxHeight, 28);
@@ -566,6 +612,10 @@ const escapeVCardValue = (value) =>
     .replace(/,/g, '\\,');
 
 export const downloadProfileAsVcf = (profile, company) => {
+  const noteParts = [profile.department, profile.extensionNumber ? `EXT ${profile.extensionNumber}` : ''].filter(
+    Boolean,
+  );
+
   const vCard = [
     'BEGIN:VCARD',
     'VERSION:3.0',
@@ -575,7 +625,7 @@ export const downloadProfileAsVcf = (profile, company) => {
     `EMAIL:${escapeVCardValue(profile.email)}`,
     `TEL;TYPE=CELL:${escapeVCardValue(profile.phoneNumber)}`,
     `URL:${escapeVCardValue(normalizeLinkedinUrl(profile.linkedinUrl))}`,
-    `NOTE:${escapeVCardValue(profile.department)}`,
+    `NOTE:${escapeVCardValue(noteParts.join(' | '))}`,
     'END:VCARD',
   ].join('\n');
 

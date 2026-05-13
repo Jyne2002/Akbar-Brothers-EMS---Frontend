@@ -5,15 +5,19 @@ import ProfileSocialButtons from '../components/ProfileSocialButtons';
 import { COMPANIES, getCompanyByValue } from '../constants/companies';
 import api from '../utils/api';
 import { getStoredUser, setStoredUser } from '../utils/auth';
+import { formatPhoneWithExtension } from '../utils/profileCard';
 
 const inputClassName =
   'mt-1.5 w-full rounded-2xl border border-[var(--color-brand-red)]/20 bg-white px-4 py-2.5 text-sm text-[var(--color-brand-ink)] outline-none transition focus:border-[var(--color-brand-red)] focus:ring-4 focus:ring-[var(--color-brand-red)]/14 disabled:cursor-default disabled:bg-[#faf7f8] disabled:text-black/70';
 const PHONE_NUMBER_LENGTH = 10;
+const EXTENSION_NUMBER_MAX_LENGTH = 6;
 const isValidEmailAddress = (value) => String(value || '').trim().includes('@');
 const getPhoneNumberError = (value) =>
   value && value.length !== PHONE_NUMBER_LENGTH
     ? `Phone number must be exactly ${PHONE_NUMBER_LENGTH} digits`
     : '';
+const getExtensionNumberError = (value) =>
+  value && !/^\d{1,6}$/.test(String(value || '').trim()) ? 'EXT number must be 1 to 6 digits' : '';
 const getEmailError = (value) =>
   value && !isValidEmailAddress(value) ? 'Email address must include @' : '';
 
@@ -25,6 +29,7 @@ const emptyProfile = {
   department: '',
   jobRole: '',
   phoneNumber: '',
+  extensionNumber: '',
   company: '',
   profileImage: '',
   role: 'employee',
@@ -87,7 +92,11 @@ const MyProfile = () => {
 
   const handleChange = (field, value) => {
     const nextValue =
-      field === 'phoneNumber' ? value.replace(/\D/g, '').slice(0, PHONE_NUMBER_LENGTH) : value;
+      field === 'phoneNumber'
+        ? value.replace(/\D/g, '').slice(0, PHONE_NUMBER_LENGTH)
+        : field === 'extensionNumber'
+          ? value.replace(/\D/g, '').slice(0, EXTENSION_NUMBER_MAX_LENGTH)
+          : value;
 
     setError('');
     setSuccess('');
@@ -130,6 +139,11 @@ const MyProfile = () => {
 
       if (phoneNumberError) {
         setError(phoneNumberError);
+        return;
+      }
+
+      if (extensionNumberError) {
+        setError(extensionNumberError);
         return;
       }
 
@@ -178,6 +192,7 @@ const MyProfile = () => {
     ? `${activeCompany.companyName} logo`
     : 'Akbar Brothers corporate logo';
   const phoneNumberError = getPhoneNumberError(formData.phoneNumber || '');
+  const extensionNumberError = getExtensionNumberError(formData.extensionNumber || '');
   const emailError = getEmailError(formData.email || '');
   const profileComplete = profile.profileCompleted;
   const publicCardPath =
@@ -235,6 +250,14 @@ const MyProfile = () => {
           <p className="mt-1.5 text-sm text-[var(--color-earth-brown)]/78">
             {formData.jobRole || profile.jobRole || 'Employee role will appear here'}
           </p>
+          {(formData.phoneNumber || profile.phoneNumber || formData.extensionNumber || profile.extensionNumber) && (
+            <p className="mt-2 text-sm text-[var(--color-earth-brown)]/72">
+              {formatPhoneWithExtension(
+                formData.phoneNumber || profile.phoneNumber,
+                formData.extensionNumber || profile.extensionNumber,
+              )}
+            </p>
+          )}
         </div>
 
         <div className="mt-7 flex flex-col items-center gap-4">
@@ -360,6 +383,21 @@ const MyProfile = () => {
                   className={inputClassName}
                 />
                 {emailError && <p className="mt-2 text-xs text-red-700">{emailError}</p>}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">EXT number (optional)</label>
+                <input
+                  type="tel"
+                  value={formData.extensionNumber || ''}
+                  onChange={(event) => handleChange('extensionNumber', event.target.value)}
+                  className={inputClassName}
+                  inputMode="numeric"
+                  pattern="\d{1,6}"
+                  maxLength={EXTENSION_NUMBER_MAX_LENGTH}
+                  placeholder="247"
+                />
+                {extensionNumberError && <p className="mt-2 text-xs text-red-700">{extensionNumberError}</p>}
               </div>
 
               <div className="md:col-span-2">
@@ -531,6 +569,22 @@ const MyProfile = () => {
                   disabled={isViewingManagedProfile || !isEditing}
                 />
                 {emailError && <p className="mt-2 text-xs text-red-700">{emailError}</p>}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-black">EXT number (optional)</label>
+                <input
+                  type="tel"
+                  value={formData.extensionNumber || ''}
+                  onChange={(event) => handleChange('extensionNumber', event.target.value)}
+                  className={inputClassName}
+                  inputMode="numeric"
+                  pattern="\d{1,6}"
+                  maxLength={EXTENSION_NUMBER_MAX_LENGTH}
+                  placeholder="247"
+                  disabled={isViewingManagedProfile || !isEditing}
+                />
+                {extensionNumberError && <p className="mt-2 text-xs text-red-700">{extensionNumberError}</p>}
               </div>
 
               <div className="md:col-span-2">

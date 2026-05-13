@@ -9,7 +9,7 @@ import {
   downloadProfileAsJpg,
   downloadProfileAsPdf,
   downloadProfileAsVcf,
-  getOutlookUrl,
+  formatPhoneWithExtension,
   getWhatsappUrl,
   normalizeLinkedinUrl,
 } from '../utils/profileCard';
@@ -74,25 +74,19 @@ const PublicProfileCard = () => {
           href: getWhatsappUrl(profile?.phoneNumber),
           icon: '/whatsapp.png',
         },
-        {
-          key: 'outlook',
-          alt: 'Outlook',
-          href: getOutlookUrl(profile?.email),
-          icon: '/outlook.png',
-        },
       ].filter((link) => link.href),
-    [profile?.email, profile?.linkedinUrl, profile?.phoneNumber],
+    [profile?.linkedinUrl, profile?.phoneNumber],
   );
 
   const profileRows = useMemo(
     () => [
-      { label: 'Position', value: profile?.jobRole || 'Not shared yet' },
-      { label: 'Department', value: profile?.department || 'Not shared yet' },
-      { label: 'Phone', value: profile?.phoneNumber || 'Not shared yet' },
+      {
+        label: 'Phone',
+        value: formatPhoneWithExtension(profile?.phoneNumber, profile?.extensionNumber) || 'Not shared yet',
+      },
       { label: 'E-mail', value: profile?.email || 'Not shared yet' },
-      { label: 'Company', value: company?.companyName || 'Akbar Brothers' },
     ],
-    [company?.companyName, profile?.department, profile?.email, profile?.jobRole, profile?.phoneNumber],
+    [profile?.email, profile?.extensionNumber, profile?.phoneNumber],
   );
 
   const initials = useMemo(
@@ -135,6 +129,27 @@ const PublicProfileCard = () => {
       setNotice('Copy the link from the dialog to share it.');
     } catch (shareError) {
       setNotice(shareError?.message || 'We could not share this card right now.');
+    }
+  };
+
+  const handleCopyLink = async () => {
+    const shareUrl = buildPublicProfileUrl(shareSlug);
+
+    if (!shareUrl) {
+      return;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        setNotice('Card link copied to your clipboard.');
+        return;
+      }
+
+      window.prompt('Copy this visiting card link:', shareUrl);
+      setNotice('Copy the link from the dialog.');
+    } catch (copyError) {
+      setNotice(copyError?.message || 'We could not copy the card link right now.');
     }
   };
 
@@ -192,7 +207,7 @@ const PublicProfileCard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(233,198,204,0.55)_0%,_rgba(250,246,243,0.92)_38%,_#f7f0eb_100%)] px-4 py-4">
+    <div className="flex min-h-[100dvh] items-center bg-[radial-gradient(circle_at_top,_rgba(233,198,204,0.55)_0%,_rgba(250,246,243,0.92)_38%,_#f7f0eb_100%)] px-4 py-3">
       <div className="mx-auto max-w-[21.75rem]">
         <PublicProfileCardLayout
           profile={profile}
@@ -206,6 +221,7 @@ const PublicProfileCard = () => {
           downloading={downloading}
           notice={notice}
           onShare={handleShare}
+          onCopy={handleCopyLink}
           onToggleDownloadMenu={() => setDownloadMenuOpen((currentState) => !currentState)}
           onDownload={handleDownload}
         />
