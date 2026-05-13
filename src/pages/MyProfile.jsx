@@ -5,7 +5,6 @@ import ProfileSocialButtons from '../components/ProfileSocialButtons';
 import { COMPANIES, getCompanyByValue } from '../constants/companies';
 import api from '../utils/api';
 import { getStoredUser, setStoredUser } from '../utils/auth';
-import { formatPhoneWithExtension } from '../utils/profileCard';
 
 const inputClassName =
   'mt-1.5 w-full rounded-2xl border border-black/10 bg-[#f4f4f4] px-4 py-2.5 text-sm text-black outline-none transition focus:border-black/20 focus:ring-4 focus:ring-black/8 disabled:cursor-default disabled:bg-[#efefef] disabled:text-black/70';
@@ -254,14 +253,6 @@ const MyProfile = () => {
           <p className="mt-1.5 text-sm text-black/78">
             {formData.jobRole || profile.jobRole || 'Employee role will appear here'}
           </p>
-          {(formData.phoneNumber || profile.phoneNumber || formData.extensionNumber || profile.extensionNumber) && (
-            <p className="mt-2 text-sm text-black/72">
-              {formatPhoneWithExtension(
-                formData.phoneNumber || profile.phoneNumber,
-                formData.extensionNumber || profile.extensionNumber,
-              )}
-            </p>
-          )}
         </div>
 
         <div className="mt-7 flex flex-col items-center gap-4">
