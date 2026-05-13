@@ -55,7 +55,7 @@ const PublicProfileCardLayout = ({
       </div>
 
       <div className="text-center">
-        <h2 className="mx-auto mt-3 max-w-[16rem] text-[1.85rem] font-extrabold leading-tight text-[var(--color-brand-ink)]">
+        <h2 className="mx-auto mt-3 max-w-[16rem] text-[1.85rem] font-bold leading-tight text-[var(--color-brand-ink)]">
           {profile.fullName}
         </h2>
 
