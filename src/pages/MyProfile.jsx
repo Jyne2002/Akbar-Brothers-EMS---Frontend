@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Building2, Camera, Save, Share2 } from 'lucide-react';
+import { Building2, Camera, Loader2, Save, Share2 } from 'lucide-react';
 import ProfileImageEditorModal from '../components/ProfileImageEditorModal';
 import ProfileSocialButtons from '../components/ProfileSocialButtons';
 import { COMPANIES, getCompanyByValue } from '../constants/companies';
 import api from '../utils/api';
 import { getStoredUser, setStoredUser } from '../utils/auth';
+import { buildPublicProfilePath } from '../utils/profileCard';
 
 const inputClassName =
   'mt-1.5 w-full rounded-2xl border border-black/10 bg-[#f4f4f4] px-4 py-2.5 text-sm text-black outline-none transition focus:border-black/20 focus:ring-4 focus:ring-black/8 disabled:cursor-default disabled:bg-[#efefef] disabled:text-black/70';
@@ -87,6 +88,7 @@ const MyProfile = () => {
   const [isImageEditorOpen, setIsImageEditorOpen] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const hasLocalChangesRef = useRef(false);
 
   useEffect(() => {
@@ -230,7 +232,7 @@ const MyProfile = () => {
   };
 
   const handleSave = async () => {
-    if (!isOwnProfile) {
+    if (!isOwnProfile || isSaving) {
       return;
     }
 
@@ -257,6 +259,7 @@ const MyProfile = () => {
         headers: { Authorization: `Bearer ${userInfo?.token}` },
       };
 
+      setIsSaving(true);
       const { data } = await api.put('/api/auth/profile', formData, config);
       setStoredUser(data);
       setProfile(data);
@@ -270,6 +273,8 @@ const MyProfile = () => {
       );
     } catch (saveError) {
       setError(getApiErrorMessage(saveError, 'Failed to save profile details'));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -304,7 +309,9 @@ const MyProfile = () => {
   const emailError = getEmailError(formData.email || '');
   const profileComplete = profile.profileCompleted;
   const publicCardPath =
-    isOwnProfile && profile.profileCompleted && profile.shareSlug ? `/card/${profile.shareSlug}` : '';
+    isOwnProfile && profile.profileCompleted && profile.shareSlug
+      ? buildPublicProfilePath(profile.shareSlug, profile.fullName, profile.employeeNumber)
+      : '';
   const showSetupFlow = isOwnProfile && !profileComplete;
 
   if (loading) {
@@ -438,6 +445,7 @@ const MyProfile = () => {
                     value={formData.fullName}
                     onChange={(event) => handleChange('fullName', event.target.value)}
                     className={inputClassName}
+                    disabled={isSaving}
                   />
                 </div>
 
@@ -448,6 +456,7 @@ const MyProfile = () => {
                     value={formData.department}
                     onChange={(event) => handleChange('department', event.target.value)}
                     className={inputClassName}
+                    disabled={isSaving}
                   />
                 </div>
 
@@ -458,6 +467,7 @@ const MyProfile = () => {
                     value={formData.jobRole}
                     onChange={(event) => handleChange('jobRole', event.target.value)}
                     className={inputClassName}
+                    disabled={isSaving}
                   />
                 </div>
 
@@ -472,6 +482,7 @@ const MyProfile = () => {
                     pattern="\d{10}"
                     maxLength={PHONE_NUMBER_LENGTH}
                     placeholder="0712345678"
+                    disabled={isSaving}
                   />
                   {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
                 </div>
@@ -483,6 +494,7 @@ const MyProfile = () => {
                     value={formData.email || ''}
                     onChange={(event) => handleChange('email', event.target.value)}
                     className={inputClassName}
+                    disabled={isSaving}
                   />
                   {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
                 </div>
@@ -498,6 +510,7 @@ const MyProfile = () => {
                     pattern="\d{1,6}"
                     maxLength={EXTENSION_NUMBER_MAX_LENGTH}
                     placeholder="247"
+                    disabled={isSaving}
                   />
                   {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
                 </div>
@@ -510,6 +523,7 @@ const MyProfile = () => {
                     onChange={(event) => handleChange('linkedinUrl', event.target.value)}
                     className={inputClassName}
                     placeholder="linkedin.com/in/your-profile"
+                    disabled={isSaving}
                   />
                 </div>
 
@@ -519,6 +533,7 @@ const MyProfile = () => {
                     value={formData.company || ''}
                     onChange={(event) => handleChange('company', event.target.value)}
                     className={inputClassName}
+                    disabled={isSaving}
                   >
                     <option value="">Select company</option>
                     {COMPANIES.map((company) => (
@@ -532,9 +547,10 @@ const MyProfile = () => {
 
               <button
                 onClick={handleSave}
-                className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
+                disabled={isSaving}
+                className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)] disabled:cursor-not-allowed disabled:opacity-80 disabled:hover:bg-[var(--color-brand-red)]"
               >
-                <Save className="h-4 w-4" />
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Create My Profile
               </button>
             </div>
@@ -580,15 +596,17 @@ const MyProfile = () => {
                     <>
                       <button
                         onClick={handleCancel}
-                        className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
+                        disabled={isSaving}
+                        className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-70"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleSave}
-                        className={primaryButtonClassName}
+                        disabled={isSaving}
+                        className={`${primaryButtonClassName} disabled:cursor-not-allowed disabled:opacity-80 disabled:hover:bg-[var(--color-brand-red)]`}
                       >
-                        <Save className="h-4 w-4" />
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                         Save changes
                       </button>
                     </>
@@ -621,7 +639,7 @@ const MyProfile = () => {
                     value={formData.fullName}
                     onChange={(event) => handleChange('fullName', event.target.value)}
                     className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing}
+                    disabled={isViewingManagedProfile || !isEditing || isSaving}
                   />
                 </div>
 
@@ -632,7 +650,7 @@ const MyProfile = () => {
                     value={formData.department}
                     onChange={(event) => handleChange('department', event.target.value)}
                     className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing}
+                    disabled={isViewingManagedProfile || !isEditing || isSaving}
                   />
                 </div>
 
@@ -643,7 +661,7 @@ const MyProfile = () => {
                     value={formData.jobRole}
                     onChange={(event) => handleChange('jobRole', event.target.value)}
                     className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing}
+                    disabled={isViewingManagedProfile || !isEditing || isSaving}
                   />
                 </div>
 
@@ -658,7 +676,7 @@ const MyProfile = () => {
                     pattern="\d{10}"
                     maxLength={PHONE_NUMBER_LENGTH}
                     placeholder="0712345678"
-                    disabled={isViewingManagedProfile || !isEditing}
+                    disabled={isViewingManagedProfile || !isEditing || isSaving}
                   />
                   {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
                 </div>
@@ -670,7 +688,7 @@ const MyProfile = () => {
                     value={formData.email || ''}
                     onChange={(event) => handleChange('email', event.target.value)}
                     className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing}
+                    disabled={isViewingManagedProfile || !isEditing || isSaving}
                   />
                   {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
                 </div>
@@ -686,7 +704,7 @@ const MyProfile = () => {
                     pattern="\d{1,6}"
                     maxLength={EXTENSION_NUMBER_MAX_LENGTH}
                     placeholder="247"
-                    disabled={isViewingManagedProfile || !isEditing}
+                    disabled={isViewingManagedProfile || !isEditing || isSaving}
                   />
                   {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
                 </div>
@@ -699,7 +717,7 @@ const MyProfile = () => {
                     onChange={(event) => handleChange('linkedinUrl', event.target.value)}
                     className={inputClassName}
                     placeholder="linkedin.com/in/your-profile"
-                    disabled={isViewingManagedProfile || !isEditing}
+                    disabled={isViewingManagedProfile || !isEditing || isSaving}
                   />
                 </div>
 
@@ -709,7 +727,7 @@ const MyProfile = () => {
                     value={formData.company || ''}
                     onChange={(event) => handleChange('company', event.target.value)}
                     className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing}
+                    disabled={isViewingManagedProfile || !isEditing || isSaving}
                   >
                     <option value="">Select company</option>
                     {COMPANIES.map((company) => (

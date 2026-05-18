@@ -55,20 +55,71 @@ export const formatPhoneWithExtension = (phoneNumber, extensionNumber) => {
   return normalizedPhoneNumber;
 };
 
-export const buildPublicProfileUrl = (shareSlug) => {
-  if (typeof window === 'undefined' || !shareSlug) {
+const sanitizePublicPathPart = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+export const buildPublicIdentitySegment = (fullName, employeeNumber) =>
+  [sanitizePublicPathPart(fullName), sanitizePublicPathPart(employeeNumber)].filter(Boolean).join('-');
+
+export const buildPublicProfilePath = (
+  shareSlug,
+  fullName,
+  employeeNumber,
+  identitySegment = '',
+) => {
+  if (!shareSlug) {
     return '';
   }
 
-  return `${window.location.origin}/card/${shareSlug}`;
+  const resolvedIdentitySegment =
+    identitySegment?.trim() || buildPublicIdentitySegment(fullName, employeeNumber);
+
+  return resolvedIdentitySegment ? `/card/${shareSlug}/${resolvedIdentitySegment}` : `/card/${shareSlug}`;
 };
 
-export const buildPublicCompanyInfoUrl = (shareSlug, companyCode) => {
-  if (!shareSlug || !companyCode) {
+export const buildPublicProfileUrl = (
+  shareSlug,
+  fullName,
+  employeeNumber,
+  identitySegment = '',
+) => {
+  if (typeof window === 'undefined') {
     return '';
   }
 
-  return `/card/${shareSlug}/company/${encodeURIComponent(companyCode)}`;
+  const profilePath = buildPublicProfilePath(
+    shareSlug,
+    fullName,
+    employeeNumber,
+    identitySegment,
+  );
+
+  return profilePath ? `${window.location.origin}${profilePath}` : '';
+};
+
+export const buildPublicCompanyInfoUrl = (
+  shareSlug,
+  companyCode,
+  fullName,
+  employeeNumber,
+  identitySegment = '',
+) => {
+  if (!companyCode) {
+    return '';
+  }
+
+  const profilePath = buildPublicProfilePath(
+    shareSlug,
+    fullName,
+    employeeNumber,
+    identitySegment,
+  );
+
+  return profilePath ? `${profilePath}/company/${encodeURIComponent(companyCode)}` : '';
 };
 
 const sanitizeFileStem = (value) =>

@@ -4,6 +4,7 @@ import {
   Briefcase,
   Building2,
   Eye,
+  Loader2,
   Mail,
   Phone,
   RefreshCw,
@@ -20,9 +21,9 @@ const inputClassName =
 const activeFilterButtonClassName =
   'border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] text-white shadow-[0_14px_28px_rgba(142,20,36,0.18)]';
 const primaryButtonClassName =
-  'rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
+  'inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
 const compactPrimaryButtonClassName =
-  'rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
+  'inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
 const disabledPrimaryButtonClassName =
   'disabled:cursor-not-allowed disabled:border-[var(--color-brand-red)]/45 disabled:bg-[var(--color-brand-red)]/45 disabled:text-white/80';
 
@@ -65,9 +66,13 @@ const AdminPanel = () => {
   const [userSearch, setUserSearch] = useState('');
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [isRefreshingUsers, setIsRefreshingUsers] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedPromotionUserId, setSelectedPromotionUserId] = useState('');
+  const [pendingRoleUserId, setPendingRoleUserId] = useState('');
+  const [pendingDeleteUserId, setPendingDeleteUserId] = useState('');
+  const [isPromotingSelectedUser, setIsPromotingSelectedUser] = useState(false);
 
   useEffect(() => {
     if (!success) {
@@ -88,15 +93,29 @@ const AdminPanel = () => {
     [userInfo?.token],
   );
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async ({ showLoadingState = true, showRefreshingState = false } = {}) => {
     try {
-      setLoadingUsers(true);
+      if (showLoadingState) {
+        setLoadingUsers(true);
+      }
+
+      if (showRefreshingState) {
+        setIsRefreshingUsers(true);
+      }
+
+      setError('');
       const { data } = await api.get('/api/auth/users', requestConfig);
       setUsers(data);
     } catch (fetchError) {
       setError(fetchError.response?.data?.message || 'Failed to load users');
     } finally {
-      setLoadingUsers(false);
+      if (showLoadingState) {
+        setLoadingUsers(false);
+      }
+
+      if (showRefreshingState) {
+        setIsRefreshingUsers(false);
+      }
     }
   }, [requestConfig]);
 
@@ -135,7 +154,7 @@ const AdminPanel = () => {
     [employeeSearch, selectedCompany, users],
   );
 
-  const handleRoleToggle = async (user) => {
+  const handleRoleToggle = async (user, { isPromotionAction = false } = {}) => {
     const nextRole = user.role === 'admin' ? 'employee' : 'admin';
     const actionLabel =
       nextRole === 'admin' ? 'grant admin access to' : 'remove admin access from';
@@ -151,8 +170,13 @@ const AdminPanel = () => {
     try {
       setError('');
       setSuccess('');
+      if (isPromotionAction) {
+        setIsPromotingSelectedUser(true);
+      } else {
+        setPendingRoleUserId(String(user._id));
+      }
       await api.put(`/api/auth/users/${user._id}/role`, { role: nextRole }, requestConfig);
-      await fetchUsers();
+      await fetchUsers({ showLoadingState: false });
       setSuccess(
         `${user.fullName || user.employeeNumber} is now ${
           nextRole === 'admin' ? 'an admin' : 'an employee'
@@ -160,6 +184,9 @@ const AdminPanel = () => {
       );
     } catch (toggleError) {
       setError(toggleError.response?.data?.message || 'Failed to update user role');
+    } finally {
+      setPendingRoleUserId('');
+      setIsPromotingSelectedUser(false);
     }
   };
 
@@ -171,7 +198,7 @@ const AdminPanel = () => {
       return;
     }
 
-    await handleRoleToggle(selectedUser);
+    await handleRoleToggle(selectedUser, { isPromotionAction: true });
     setSelectedPromotionUserId('');
   };
 
@@ -183,11 +210,14 @@ const AdminPanel = () => {
     try {
       setError('');
       setSuccess('');
+      setPendingDeleteUserId(String(user._id));
       await api.delete(`/api/auth/users/${user._id}`, requestConfig);
-      await fetchUsers();
+      await fetchUsers({ showLoadingState: false });
       setSuccess(`${user.fullName || user.employeeNumber} was removed from the system.`);
     } catch (deleteError) {
       setError(deleteError.response?.data?.message || 'Failed to delete user');
+    } finally {
+      setPendingDeleteUserId('');
     }
   };
 
@@ -260,10 +290,11 @@ const AdminPanel = () => {
                 />
               </div>
               <button
-                onClick={fetchUsers}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
+                onClick={() => fetchUsers({ showLoadingState: false, showRefreshingState: true })}
+                disabled={isRefreshingUsers}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                <RefreshCw className="h-4 w-4" />
+                {isRefreshingUsers ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 Refresh
               </button>
             </div>
@@ -296,9 +327,10 @@ const AdminPanel = () => {
                 </select>
                 <button
                   onClick={handlePromoteSelectedUser}
-                  disabled={!selectedPromotionUserId}
+                  disabled={!selectedPromotionUserId || isPromotingSelectedUser}
                   className={`${primaryButtonClassName} ${disabledPrimaryButtonClassName}`}
                 >
+                  {isPromotingSelectedUser ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Make admin
                 </button>
               </div>
@@ -378,16 +410,21 @@ const AdminPanel = () => {
                     <div className="flex flex-wrap gap-3">
                       <button
                         onClick={() => handleRoleToggle(user)}
-                        disabled={user._id === userInfo?._id && user.role === 'admin'}
+                        disabled={
+                          (user._id === userInfo?._id && user.role === 'admin') ||
+                          pendingRoleUserId === String(user._id)
+                        }
                         className={`${compactPrimaryButtonClassName} ${disabledPrimaryButtonClassName}`}
                       >
+                        {pendingRoleUserId === String(user._id) ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                         Remove admin
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user)}
-                        disabled={user._id === userInfo?._id}
-                        className="rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35"
+                        disabled={user._id === userInfo?._id || pendingDeleteUserId === String(user._id)}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35"
                       >
+                        {pendingDeleteUserId === String(user._id) ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                         Delete user
                       </button>
                     </div>
@@ -405,10 +442,11 @@ const AdminPanel = () => {
             </div>
 
             <button
-              onClick={fetchUsers}
-              className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
+              onClick={() => fetchUsers({ showLoadingState: false, showRefreshingState: true })}
+              disabled={isRefreshingUsers}
+              className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              <RefreshCw className="h-4 w-4" />
+              {isRefreshingUsers ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               Refresh
             </button>
           </div>
@@ -516,10 +554,14 @@ const AdminPanel = () => {
                       </Link>
                       <button
                         onClick={() => handleDeleteUser(user)}
-                        disabled={user._id === userInfo?._id}
+                        disabled={user._id === userInfo?._id || pendingDeleteUserId === String(user._id)}
                         className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {pendingDeleteUserId === String(user._id) ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                         Delete
                       </button>
                     </div>

@@ -3,12 +3,14 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2 } from 'lucide-react';
 import CompanyActionButtons from '../components/CompanyActionButtons';
 import { getCompanyByValue } from '../constants/companies';
+import { buildPublicProfilePath } from '../utils/profileCard';
 
 const PublicCompanyInfo = () => {
-  const { shareSlug, companyId } = useParams();
+  const { shareSlug, companyId, identitySlug } = useParams();
   const company = getCompanyByValue(decodeURIComponent(companyId || ''));
   const [logoErrorCompanyCode, setLogoErrorCompanyCode] = useState('');
   const showLogo = Boolean(company?.logo) && logoErrorCompanyCode !== company?.code;
+  const publicProfilePath = buildPublicProfilePath(shareSlug, '', '', identitySlug);
 
   if (!company) {
     return (
@@ -19,7 +21,7 @@ const PublicCompanyInfo = () => {
             We could not match this company to a saved public company page.
           </p>
           <Link
-            to={`/card/${shareSlug}`}
+            to={publicProfilePath}
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -82,7 +84,7 @@ const PublicCompanyInfo = () => {
 
         <div className="mt-4 flex justify-center">
           <Link
-            to={`/card/${shareSlug}`}
+            to={publicProfilePath}
             className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#faf7f8]"
           >
             <ArrowLeft className="h-4 w-4" />

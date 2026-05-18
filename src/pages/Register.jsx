@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import AuthSliderLayout from '../components/AuthSliderLayout';
 import api from '../utils/api';
 import { setStoredUser } from '../utils/auth';
@@ -11,12 +12,16 @@ const MIN_PASSWORD_LENGTH = 6;
 const Register = () => {
   const [employeeNumber, setEmployeeNumber] = useState('');
   const [password, setPassword] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
 
     if (password.trim().length < MIN_PASSWORD_LENGTH) {
       setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
@@ -25,28 +30,25 @@ const Register = () => {
 
     try {
       setError('');
+      setIsSubmitting(true);
       const { data } = await api.post('/api/auth/register', {
         employeeNumber,
         password,
-        isAdmin,
       });
       setStoredUser(data);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <AuthSliderLayout
-      mode="register"
-      badge="New Account"
-      title="Register employee access"
-      subtitle="Create your account with your employee number and password."
-      panelTitle="Start with a simple registration flow."
-      panelCopy="Register first, then complete your visiting card-style employee profile after your first sign in."
-      switchPrompt="Already have credentials?"
-      switchLabel="Back to login"
+      title="Create Account"
+      switchPrompt="Already have an account?"
+      switchLabel="Login"
       switchTo="/login"
     >
       {error && (
@@ -67,6 +69,7 @@ const Register = () => {
             className={inputClassName}
             autoComplete="username"
             placeholder="AB-1024"
+            disabled={isSubmitting}
             required
           />
         </div>
@@ -83,42 +86,20 @@ const Register = () => {
             autoComplete="new-password"
             placeholder="Create a password"
             minLength={MIN_PASSWORD_LENGTH}
+            disabled={isSubmitting}
             required
           />
-          <p className="mt-2 text-xs text-[var(--color-earth-brown)]/70">
-            Password must be at least {MIN_PASSWORD_LENGTH} characters long.
-          </p>
         </div>
-
-        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-brand-red)]/18 bg-[var(--color-brand-red-soft)] px-4 py-3 text-sm text-[var(--color-earth-brown)]">
-          <input
-            type="checkbox"
-            checked={isAdmin}
-            onChange={(event) => setIsAdmin(event.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-[var(--color-brand-red-dark)] text-[var(--color-brand-red-dark)] focus:ring-[var(--color-brand-red)]"
-          />
-          <span>
-            <span className="block font-semibold text-[var(--color-brand-red-dark)]">Create this account as admin</span>
-            <span className="block text-xs text-[var(--color-earth-brown)]/75">
-              Turn this on if this user should have admin access after signing in.
-            </span>
-          </span>
-        </label>
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-[var(--color-brand-red)] px-4 py-3 text-sm font-semibold text-[var(--color-cream-white)] shadow-[0_16px_32px_rgba(89,10,22,0.22)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-brand-red-dark)]"
+          disabled={isSubmitting}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-brand-red)] px-4 py-3 text-sm font-semibold text-[var(--color-cream-white)] shadow-[0_16px_32px_rgba(89,10,22,0.22)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-brand-red-dark)] disabled:cursor-not-allowed disabled:opacity-80 disabled:hover:translate-y-0 disabled:hover:bg-[var(--color-brand-red)]"
         >
-          Create account
+          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          Register
         </button>
       </form>
-
-      <p className="mt-5 text-sm text-[var(--color-earth-brown)]/75">
-        Already have an account?{' '}
-        <Link viewTransition to="/login" className="font-semibold text-[var(--color-brand-red-dark)] hover:underline">
-          Login here
-        </Link>
-      </p>
     </AuthSliderLayout>
   );
 };

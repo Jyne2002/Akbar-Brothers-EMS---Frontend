@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import AuthSliderLayout from '../components/AuthSliderLayout';
 import api from '../utils/api';
 import { setStoredUser } from '../utils/auth';
@@ -11,29 +12,34 @@ const Login = () => {
   const [employeeNumber, setEmployeeNumber] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
+
     try {
+      setError('');
+      setIsSubmitting(true);
       const { data } = await api.post('/api/auth/login', { employeeNumber, password });
       setStoredUser(data);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid employee number or password');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <AuthSliderLayout
-      mode="login"
-      badge="Employee Portal"
-      title="Welcome back"
-      subtitle="Sign in with your employee number and password to access your EMS workspace."
-      panelTitle="Akbar Brothers employee access in one secure workspace."
-      panelCopy="Log in quickly, complete your employee card on first access, and manage your profile in one place."
+      title="Welcome Back"
       switchPrompt="Need a new account?"
-      switchLabel="Create account"
+      switchLabel="Register"
       switchTo="/register"
     >
       {error && (
@@ -54,6 +60,7 @@ const Login = () => {
             className={inputClassName}
             autoComplete="username"
             placeholder="AB-1024"
+            disabled={isSubmitting}
             required
           />
         </div>
@@ -69,24 +76,20 @@ const Login = () => {
             className={inputClassName}
             autoComplete="current-password"
             placeholder="Enter your password"
+            disabled={isSubmitting}
             required
           />
         </div>
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-[var(--color-brand-red)] px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_32px_rgba(89,10,22,0.22)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-brand-red-dark)]"
+          disabled={isSubmitting}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-brand-red)] px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_32px_rgba(89,10,22,0.22)] transition-transform hover:-translate-y-0.5 hover:bg-[var(--color-brand-red-dark)] disabled:cursor-not-allowed disabled:opacity-80 disabled:hover:translate-y-0 disabled:hover:bg-[var(--color-brand-red)]"
         >
-          Sign In
+          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          Login
         </button>
       </form>
-
-      <p className="mt-5 text-sm text-[var(--color-earth-brown)]/75">
-        Don&apos;t have an account?{' '}
-        <Link viewTransition to="/register" className="font-semibold text-[var(--color-brand-red-dark)] hover:underline">
-          Register here
-        </Link>
-      </p>
     </AuthSliderLayout>
   );
 };

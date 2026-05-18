@@ -43,8 +43,8 @@ const FALCON_ACTION_LINKS = [
     key: 'phone',
     alt: 'Phone',
     href: 'tel:+94112697151',
-    icon: 'phone',
-    iconType: 'lucide',
+    icon: '/phone.png',
+    iconType: 'image',
   },
 ];
 

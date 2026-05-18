@@ -1,7 +1,7 @@
 import { getWhatsappUrl, normalizeLinkedinUrl } from '../utils/profileCard';
 import { getBrandMaskedIconStyle } from '../utils/socialIcons';
 
-const ProfileSocialButtons = ({ linkedinUrl, phoneNumber, size = 'default' }) => {
+const ProfileSocialButtons = ({ linkedinUrl, phoneNumber }) => {
   const socialLinks = [
     {
       key: 'linkedin',
@@ -17,7 +17,7 @@ const ProfileSocialButtons = ({ linkedinUrl, phoneNumber, size = 'default' }) =>
     },
   ];
 
-  const imageClassName = size === 'compact' ? 'h-9 w-9' : 'h-10 w-10';
+  const imageClassName = 'h-12 w-12';
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-3">

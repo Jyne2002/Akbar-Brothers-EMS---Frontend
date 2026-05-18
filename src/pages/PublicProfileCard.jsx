@@ -5,6 +5,7 @@ import { getCompanyByValue } from '../constants/companies';
 import api from '../utils/api';
 import {
   buildPublicCompanyInfoUrl,
+  buildPublicIdentitySegment,
   buildPublicProfileUrl,
   downloadProfileAsJpg,
   downloadProfileAsPdf,
@@ -14,7 +15,7 @@ import {
 } from '../utils/profileCard';
 
 const PublicProfileCard = () => {
-  const { shareSlug } = useParams();
+  const { shareSlug, identitySlug } = useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,7 +54,17 @@ const PublicProfileCard = () => {
   }, [shareSlug]);
 
   const company = useMemo(() => getCompanyByValue(profile?.company || ''), [profile?.company]);
-  const publicCompanyInfoPath = buildPublicCompanyInfoUrl(shareSlug, company?.code);
+  const canonicalIdentitySlug = useMemo(
+    () => buildPublicIdentitySegment(profile?.fullName, profile?.employeeNumber),
+    [profile?.employeeNumber, profile?.fullName],
+  );
+  const publicCompanyInfoPath = buildPublicCompanyInfoUrl(
+    shareSlug,
+    company?.code,
+    profile?.fullName,
+    profile?.employeeNumber,
+    identitySlug || canonicalIdentitySlug,
+  );
   const companyLogoSrc = company?.logo || '/akbar-corporate-logo.png';
   const companyLogoAlt = company?.companyName
     ? `${company.companyName} corporate logo`
@@ -110,7 +121,12 @@ const PublicProfileCard = () => {
   );
 
   const handleShare = async () => {
-    const shareUrl = buildPublicProfileUrl(shareSlug);
+    const shareUrl = buildPublicProfileUrl(
+      shareSlug,
+      profile?.fullName,
+      profile?.employeeNumber,
+      identitySlug || canonicalIdentitySlug,
+    );
 
     if (!shareUrl || !profile) {
       return;
@@ -141,7 +157,12 @@ const PublicProfileCard = () => {
   };
 
   const handleCopyLink = async () => {
-    const shareUrl = buildPublicProfileUrl(shareSlug);
+    const shareUrl = buildPublicProfileUrl(
+      shareSlug,
+      profile?.fullName,
+      profile?.employeeNumber,
+      identitySlug || canonicalIdentitySlug,
+    );
 
     if (!shareUrl) {
       return;
