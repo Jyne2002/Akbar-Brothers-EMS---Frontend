@@ -238,7 +238,7 @@ const PublicProfileCard = () => {
   }
 
   return (
-    <div className="min-h-[100svh] bg-[radial-gradient(circle_at_top,_rgba(245,245,245,0.9)_0%,_rgba(255,255,255,0.98)_42%,_#f7f7f7_100%)] px-3 py-2 md:flex md:min-h-[100dvh] md:items-center md:px-4 md:py-3">
+    <div className="min-h-[100svh] bg-[radial-gradient(circle_at_top,_rgba(245,245,245,0.9)_0%,_rgba(255,255,255,0.98)_42%,_#f7f7f7_100%)] px-3 py-1 md:flex md:min-h-[100dvh] md:items-center md:px-4 md:py-2">
       <div className="mx-auto w-full max-w-[22.5rem]">
         <PublicProfileCardLayout
           profile={profile}

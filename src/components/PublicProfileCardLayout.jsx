@@ -35,11 +35,11 @@ const PublicProfileCardLayout = ({
       </button>
     ) : null}
 
-    <div className="relative flex min-h-[8.95rem] items-center justify-center bg-[linear-gradient(180deg,_rgba(255,255,255,0.98)_0%,_rgba(243,243,243,0.94)_100%)] px-6 py-3.5 text-center">
+    <div className="relative flex min-h-[8.4rem] items-start justify-center bg-[linear-gradient(180deg,_rgba(255,255,255,0.98)_0%,_rgba(243,243,243,0.94)_100%)] px-6 pb-2 pt-2.5 text-center">
       <img
         src={companyLogoSrc}
         alt={companyLogoAlt}
-        className="relative z-10 h-[5.5rem] w-auto max-w-[16rem] object-contain"
+        className="relative z-10 translate-y-1.5 h-[5.5rem] w-auto max-w-[16rem] object-contain"
       />
     </div>
 
@@ -211,11 +211,11 @@ const PublicProfileCardLayout = ({
               )}
 
               {footerLogoSrc ? (
-                <div className="mt-2 flex justify-center">
+                <div className="mt-1 flex justify-center">
                   <img
                     src={footerLogoSrc}
                     alt={footerLogoAlt || 'Akbar Brothers logo'}
-                    className="h-12 w-auto max-w-[13rem] object-contain"
+                    className="-translate-y-1 h-12 w-auto max-w-[13rem] object-contain"
                   />
                 </div>
               ) : null}
