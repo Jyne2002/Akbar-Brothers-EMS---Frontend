@@ -36,7 +36,7 @@ const Register = () => {
         password,
       });
       setStoredUser(data);
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Error occurred');
     } finally {

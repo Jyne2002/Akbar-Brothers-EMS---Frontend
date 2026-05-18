@@ -5,7 +5,7 @@ import ProfileImageEditorModal from '../components/ProfileImageEditorModal';
 import ProfileSocialButtons from '../components/ProfileSocialButtons';
 import { COMPANIES, getCompanyByValue } from '../constants/companies';
 import api from '../utils/api';
-import { getStoredUser, setStoredUser } from '../utils/auth';
+import { getStoredUser, hasFreshStoredUser, setStoredUser } from '../utils/auth';
 import { buildPublicProfilePath } from '../utils/profileCard';
 
 const inputClassName =
@@ -78,6 +78,7 @@ const MyProfile = () => {
     [isOwnProfile, userInfo],
   );
   const hasCachedOwnProfile = isOwnProfile && Boolean(userInfo?.token);
+  const shouldSkipOwnProfileRefresh = isOwnProfile && hasCachedOwnProfile && hasFreshStoredUser();
   const [profile, setProfile] = useState(cachedOwnProfile);
   const [formData, setFormData] = useState(cachedOwnProfile);
   const [loading, setLoading] = useState(!hasCachedOwnProfile);
@@ -116,6 +117,10 @@ const MyProfile = () => {
   }, [success]);
 
   useEffect(() => {
+    if (shouldSkipOwnProfileRefresh) {
+      return undefined;
+    }
+
     const fetchProfile = async () => {
       const shouldBlockRender = !hasCachedOwnProfile || isViewingManagedProfile;
 
@@ -169,6 +174,7 @@ const MyProfile = () => {
     hasCachedOwnProfile,
     isOwnProfile,
     isViewingManagedProfile,
+    shouldSkipOwnProfileRefresh,
     userId,
     userInfo?.token,
   ]);

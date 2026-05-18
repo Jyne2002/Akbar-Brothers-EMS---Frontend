@@ -27,7 +27,7 @@ const Login = () => {
       setIsSubmitting(true);
       const { data } = await api.post('/api/auth/login', { employeeNumber, password });
       setStoredUser(data);
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid employee number or password');
     } finally {

@@ -15,14 +15,8 @@ const Home = () => {
         const config = {
           headers: { Authorization: `Bearer ${userInfo?.token}` },
         };
-        const { data } = await api.get('/api/employees', config);
-
-        const counts = data.reduce((accumulator, employee) => {
-          accumulator[employee.company] = (accumulator[employee.company] || 0) + 1;
-          return accumulator;
-        }, {});
-
-        setEmployeeCounts(counts);
+        const { data } = await api.get('/api/employees/counts', config);
+        setEmployeeCounts(data);
       } catch (error) {
         console.error('Failed to load employee counts', error);
       }
