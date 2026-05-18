@@ -41,18 +41,36 @@ export const getWhatsappUrl = (phoneNumber) => {
 };
 
 export const formatPhoneWithExtension = (phoneNumber, extensionNumber) => {
+  const { combinedText } = getPhoneWithExtensionParts(phoneNumber, extensionNumber);
+
+  return combinedText;
+};
+
+export const getPhoneWithExtensionParts = (phoneNumber, extensionNumber) => {
   const normalizedPhoneNumber = String(phoneNumber || '').trim();
   const normalizedExtensionNumber = String(extensionNumber || '').trim();
 
   if (normalizedPhoneNumber && normalizedExtensionNumber) {
-    return `${normalizedPhoneNumber} | EXT ${normalizedExtensionNumber}`;
+    return {
+      mainText: normalizedPhoneNumber,
+      extensionText: ` | EXT ${normalizedExtensionNumber}`,
+      combinedText: `${normalizedPhoneNumber} | EXT ${normalizedExtensionNumber}`,
+    };
   }
 
   if (normalizedExtensionNumber) {
-    return `EXT ${normalizedExtensionNumber}`;
+    return {
+      mainText: `EXT ${normalizedExtensionNumber}`,
+      extensionText: '',
+      combinedText: `EXT ${normalizedExtensionNumber}`,
+    };
   }
 
-  return normalizedPhoneNumber;
+  return {
+    mainText: normalizedPhoneNumber,
+    extensionText: '',
+    combinedText: normalizedPhoneNumber,
+  };
 };
 
 const sanitizePublicPathPart = (value) =>
@@ -349,17 +367,24 @@ const createCardArtwork = async (profile, company) => {
   const nameTop = avatarTop + avatarSize + 16;
   const boxX = cardX + 16;
   const boxWidth = cardWidth - 32;
-  const labelColumnWidth = 110;
-  const rowGap = 12;
+  const labelColumnWidth = 88;
+  const rowGap = 16;
   const boxPadding = 16;
   const valueColumnX = boxX + boxPadding + labelColumnWidth + rowGap;
   const valueColumnWidth = boxWidth - boxPadding * 2 - labelColumnWidth - rowGap;
   const departmentValue = String(profile.department || '').trim();
   const jobRoleValue = String(profile.jobRole || '').trim();
-  const phoneValue = formatPhoneWithExtension(profile.phoneNumber, profile.extensionNumber);
+  const companyNameValue = String(company?.companyName || getCompanyLabel(profile.company) || '').trim();
+  const phoneValue = getPhoneWithExtensionParts(profile.phoneNumber, profile.extensionNumber);
   const details = [
-    { label: 'Phone', value: phoneValue || 'Not shared yet' },
-    { label: 'E-mail', value: profile.email || 'Not shared yet' },
+    {
+      label: 'Phone',
+      value: phoneValue.combinedText || 'Not shared yet',
+      mainText: phoneValue.mainText,
+      extensionText: phoneValue.extensionText,
+    },
+    { label: 'Mobile', value: profile.mobileNumber || 'Not shared yet' },
+    { label: 'Email', value: profile.email || 'Not shared yet' },
   ];
 
   const measurementCanvas = document.createElement('canvas');
@@ -386,18 +411,39 @@ const createCardArtwork = async (profile, company) => {
   const jobRoleLines = jobRoleValue ? wrapText(measurementContext, jobRoleValue, 270) : [];
   const jobRoleLineHeight = 25;
   const jobRoleHeight = jobRoleLines.length * jobRoleLineHeight;
-  const subtitleGap =
-    departmentLines.length > 0 && jobRoleLines.length > 0 ? 4 : 0;
-  const subtitleHeight = departmentHeight + jobRoleHeight + subtitleGap;
+  measurementContext.font = '400 14px Inter, Arial, sans-serif';
+  const companyLineHeight = 20;
+  const companyLines = companyNameValue ? wrapText(measurementContext, companyNameValue, 270) : [];
+  const companyHeight = companyLines.length * companyLineHeight;
+  let subtitleHeight = 0;
+
+  if (departmentHeight > 0) {
+    subtitleHeight += departmentHeight;
+  }
+
+  if (jobRoleHeight > 0) {
+    subtitleHeight += (subtitleHeight > 0 ? 4 : 0) + jobRoleHeight;
+  }
+
+  if (companyHeight > 0) {
+    subtitleHeight += (subtitleHeight > 0 ? 6 : 0) + companyHeight;
+  }
 
   measurementContext.font = '600 15px Inter, Arial, sans-serif';
   const detailMeasurements = details.map((detail) => {
     const lines = wrapText(measurementContext, detail.value, valueColumnWidth);
     const rowContentHeight = Math.max(18, lines.length * 24);
+    const canTintExtensionInline = Boolean(
+      detail.extensionText &&
+        lines.length === 1 &&
+        detail.mainText &&
+        measurementContext.measureText(detail.value).width <= valueColumnWidth,
+    );
 
     return {
       ...detail,
       lines,
+      canTintExtensionInline,
       rowContentHeight,
     };
   });
@@ -427,18 +473,7 @@ const createCardArtwork = async (profile, company) => {
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
 
-  const backgroundGradient = context.createRadialGradient(
-    logicalWidth / 2,
-    24,
-    10,
-    logicalWidth / 2,
-    24,
-    logicalHeight,
-  );
-  backgroundGradient.addColorStop(0, 'rgba(233,198,204,0.55)');
-  backgroundGradient.addColorStop(0.38, 'rgba(250,246,243,0.92)');
-  backgroundGradient.addColorStop(1, '#f7f0eb');
-  context.fillStyle = backgroundGradient;
+  context.fillStyle = '#ffffff';
   context.fillRect(0, 0, logicalWidth, logicalHeight);
 
   context.save();
@@ -453,10 +488,7 @@ const createCardArtwork = async (profile, company) => {
   context.save();
   drawRoundedRectanglePath(context, cardX, cardY, cardWidth, cardHeight, cardRadius);
   context.clip();
-  const headerGradient = context.createLinearGradient(0, cardY, 0, cardY + headerHeight);
-  headerGradient.addColorStop(0, 'rgba(255,250,250,0.98)');
-  headerGradient.addColorStop(1, 'rgba(249,237,239,0.92)');
-  context.fillStyle = headerGradient;
+  context.fillStyle = '#ffffff';
   context.fillRect(cardX, cardY, cardWidth, headerHeight);
   context.restore();
 
@@ -554,42 +586,64 @@ const createCardArtwork = async (profile, company) => {
 
   if (jobRoleLines.length > 0) {
     if (departmentLines.length > 0) {
-      subtitleTop += subtitleGap;
+      subtitleTop += 4;
     }
 
     context.fillStyle = 'rgba(21,21,21,0.8)';
     context.font = '700 18px Inter, Arial, sans-serif';
     drawWrappedText(context, jobRoleLines, logicalWidth / 2, subtitleTop, jobRoleLineHeight);
+    subtitleTop += jobRoleHeight;
+  }
+
+  if (companyLines.length > 0) {
+    if (departmentLines.length > 0 || jobRoleLines.length > 0) {
+      subtitleTop += 6;
+    }
+
+    context.fillStyle = 'rgba(21,21,21,0.66)';
+    context.font = '400 14px Inter, Arial, sans-serif';
+    drawWrappedText(context, companyLines, logicalWidth / 2, subtitleTop, companyLineHeight);
   }
 
   const boxHeight = detailsHeight;
   drawRoundedRectanglePath(context, boxX, boxTop, boxWidth, boxHeight, 28);
-  const boxGradient = context.createLinearGradient(0, boxTop, 0, boxTop + boxHeight);
-  boxGradient.addColorStop(0, '#fffdfd');
-  boxGradient.addColorStop(1, '#fcf5f6');
-  context.fillStyle = boxGradient;
+  context.fillStyle = '#ffffff';
   context.fill();
-  context.strokeStyle = 'rgba(180,31,49,0.1)';
+  context.strokeStyle = 'rgba(0,0,0,0.08)';
   context.lineWidth = 1;
   context.stroke();
 
   let currentRowY = boxTop + boxPadding;
   detailMeasurements.forEach((detail, index) => {
-    context.fillStyle = '#b41f31';
+    context.fillStyle = '#151515';
     context.font = '700 13px Inter, Arial, sans-serif';
     context.textAlign = 'left';
     context.textBaseline = 'top';
     context.fillText(detail.label.toUpperCase(), boxX + boxPadding, currentRowY);
 
-    context.fillStyle = 'rgba(21,21,21,0.82)';
     context.font = '600 15px Inter, Arial, sans-serif';
-    drawWrappedText(context, detail.lines, valueColumnX, currentRowY, 24);
+    context.textAlign = 'left';
+    context.textBaseline = 'top';
+
+    if (detail.canTintExtensionInline) {
+      context.fillStyle = 'rgba(21,21,21,0.82)';
+      context.fillText(detail.mainText, valueColumnX, currentRowY);
+      context.fillStyle = 'rgba(21,21,21,0.48)';
+      context.fillText(
+        detail.extensionText,
+        valueColumnX + context.measureText(detail.mainText).width,
+        currentRowY,
+      );
+    } else {
+      context.fillStyle = 'rgba(21,21,21,0.82)';
+      drawWrappedText(context, detail.lines, valueColumnX, currentRowY, 24);
+    }
 
     currentRowY += detail.rowContentHeight;
 
     if (index < detailMeasurements.length - 1) {
       currentRowY += 12;
-      context.strokeStyle = 'rgba(180,31,49,0.1)';
+      context.strokeStyle = 'rgba(0,0,0,0.08)';
       context.lineWidth = 1;
       context.beginPath();
       context.moveTo(boxX + boxPadding, currentRowY - 6);
@@ -666,11 +720,18 @@ export const downloadProfileAsVcf = (profile, company) => {
     `ORG:${escapeVCardValue(company?.companyName || getCompanyLabel(profile.company))}`,
     `TITLE:${escapeVCardValue(profile.jobRole)}`,
     `EMAIL:${escapeVCardValue(profile.email)}`,
-    `TEL;TYPE=CELL:${escapeVCardValue(profile.phoneNumber)}`,
+    profile.phoneNumber ? `TEL;TYPE=WORK,VOICE:${escapeVCardValue(profile.phoneNumber)}` : '',
+    profile.mobileNumber
+      ? `TEL;TYPE=CELL:${escapeVCardValue(profile.mobileNumber)}`
+      : profile.phoneNumber
+        ? `TEL;TYPE=CELL:${escapeVCardValue(profile.phoneNumber)}`
+        : '',
     `URL:${escapeVCardValue(normalizeLinkedinUrl(profile.linkedinUrl))}`,
     `NOTE:${escapeVCardValue(noteParts.join(' | '))}`,
     'END:VCARD',
-  ].join('\n');
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   downloadBlob(new Blob([vCard], { type: 'text/vcard;charset=utf-8' }), `${getCardFileStem(profile)}.vcf`);
 };

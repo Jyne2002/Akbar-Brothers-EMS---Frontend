@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2 } from 'lucide-react';
 import CompanyActionButtons from '../components/CompanyActionButtons';
+import CompanyContactButtons from '../components/CompanyContactButtons';
 import { getCompanyByValue } from '../constants/companies';
 
 const CompanyInfo = () => {
@@ -55,7 +56,7 @@ const CompanyInfo = () => {
           </div>
 
           <div className="px-1 py-2">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black">
+            <p className="text-sm font-bold leading-7 text-black/74">
               Company Details
             </p>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-black/74">
@@ -66,23 +67,12 @@ const CompanyInfo = () => {
               <CompanyActionButtons company={company} />
             </div>
 
-            {company.address || company.websiteLabel ? (
+            {company.address || company.websiteUrl || company.emailAddress || company.phoneUrl ? (
               <div className="mt-5 max-w-2xl text-left">
                 {company.address ? (
                   <p className="text-sm leading-6 text-black/78">{company.address}</p>
                 ) : null}
-                {company.websiteLabel ? (
-                  <p className="mt-2">
-                    <a
-                      href={company.websiteUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm font-semibold text-black underline underline-offset-2"
-                    >
-                      {company.websiteLabel}
-                    </a>
-                  </p>
-                ) : null}
+                <CompanyContactButtons company={company} />
               </div>
             ) : null}
 

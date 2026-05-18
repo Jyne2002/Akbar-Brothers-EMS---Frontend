@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2 } from 'lucide-react';
 import CompanyActionButtons from '../components/CompanyActionButtons';
+import CompanyContactButtons from '../components/CompanyContactButtons';
 import { getCompanyByValue } from '../constants/companies';
 import { buildPublicProfilePath } from '../utils/profileCard';
 
@@ -11,6 +12,7 @@ const PublicCompanyInfo = () => {
   const [logoErrorCompanyCode, setLogoErrorCompanyCode] = useState('');
   const showLogo = Boolean(company?.logo) && logoErrorCompanyCode !== company?.code;
   const publicProfilePath = buildPublicProfilePath(shareSlug, '', '', identitySlug);
+  const backTarget = publicProfilePath || '/';
 
   if (!company) {
     return (
@@ -33,64 +35,64 @@ const PublicCompanyInfo = () => {
   }
 
   return (
-    <div className="min-h-[100svh] bg-[linear-gradient(180deg,_#fdfaf8_0%,_#f6ece5_100%)] px-3 py-3 md:flex md:min-h-[100dvh] md:items-center md:px-4 md:py-6">
-      <section className="mx-auto max-w-sm rounded-[2.15rem] border border-[var(--color-brand-red)]/10 bg-white p-4 shadow-[0_22px_44px_rgba(89,10,22,0.08)] sm:p-5">
-        <div className="flex min-h-[7.75rem] items-center justify-center px-2 py-0.5 sm:min-h-[10.5rem] sm:px-3 sm:py-2">
+    <div className="flex min-h-[100svh] items-center justify-center overflow-hidden bg-[linear-gradient(180deg,_#fdfaf8_0%,_#f6ece5_100%)] px-3 py-2 md:min-h-[100dvh] md:px-4 md:py-3">
+      <section className="relative mx-auto flex min-h-[calc(100svh-1rem)] w-full max-w-sm flex-col rounded-[2.15rem] border border-[var(--color-brand-red)]/10 bg-white px-4 pb-4 pt-3 shadow-[0_22px_44px_rgba(89,10,22,0.08)] sm:max-w-[26.25rem] sm:px-5 sm:pb-5 sm:pt-3.5 md:min-h-[calc(100dvh-1.5rem)]">
+        <Link
+          to={backTarget}
+          aria-label="Back to card"
+          title="Back to card"
+          className="absolute left-4 top-4 z-20 inline-flex h-8 w-8 items-center justify-center text-black transition hover:-translate-x-0.5"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+
+        <div className="flex min-h-[8rem] items-start justify-center px-2 pt-2 sm:min-h-[9rem] sm:px-3 sm:pt-2">
           {showLogo ? (
             <img
               src={company.logo}
               alt={`${company.companyName} corporate logo`}
-              className="mx-auto h-24 w-auto object-contain sm:h-[7.5rem]"
+              className="mx-auto h-[5.35rem] w-auto translate-y-3 object-contain sm:h-[6.2rem]"
               onError={() => setLogoErrorCompanyCode(company.code)}
             />
           ) : (
-            <div className="flex h-40 w-full flex-col items-center justify-center rounded-[1.8rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] px-5 text-center text-black sm:h-44">
-              <Building2 className="h-12 w-12" />
-              <p className="mt-3 text-base font-bold text-black">{company.name}</p>
+            <div className="flex h-32 w-full flex-col items-center justify-center rounded-[1.8rem] border border-dashed border-[var(--color-brand-red)]/18 bg-[#faf7f8] px-5 text-center text-black sm:h-36">
+              <Building2 className="h-10 w-10" />
+              <p className="mt-2 text-base font-bold text-black">{company.name}</p>
             </div>
           )}
         </div>
 
-        <div className="mt-0.5 text-center">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-black">
+        <div className="mt-4 text-center">
+          <p className="text-[0.93rem] font-bold leading-6 text-black/74">
             Company Details
           </p>
-          <p className="mt-2 text-[0.93rem] leading-6 text-black/74">{company.companyOverview}</p>
+          <p className="mt-1.5 text-[0.93rem] leading-6 text-black/74">{company.companyOverview}</p>
         </div>
 
         <div className="mt-4">
-          <CompanyActionButtons company={company} size="compact" centered />
+          <CompanyActionButtons company={company} centered />
         </div>
 
-        {company.address || company.websiteLabel ? (
+        {company.address || company.websiteUrl || company.emailAddress || company.phoneUrl ? (
           <div className="mt-4 text-center">
             {company.address ? (
               <p className="text-sm leading-6 text-black/78">{company.address}</p>
             ) : null}
-            {company.websiteLabel ? (
-              <p className="mt-1.5">
-                <a
-                  href={company.websiteUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm font-semibold text-black underline underline-offset-2"
-                >
-                  {company.websiteLabel}
-                </a>
-              </p>
-            ) : null}
+            <CompanyContactButtons company={company} centered />
           </div>
         ) : null}
 
-        <div className="mt-4 flex justify-center">
-          <Link
-            to={publicProfilePath}
-            className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#faf7f8]"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to card
-          </Link>
-        </div>
+        {company.footerLogo ? (
+          <div className="mt-auto pt-5">
+            <div className="flex justify-center">
+              <img
+                src={company.footerLogo}
+                alt={company.footerLogoAlt || `${company.companyName} footer logo`}
+                className="h-14 w-auto max-w-[16rem] object-contain sm:h-[4.75rem]"
+              />
+            </div>
+          </div>
+        ) : null}
       </section>
     </div>
   );

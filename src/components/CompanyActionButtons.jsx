@@ -1,6 +1,6 @@
 import { getBrandMaskedIconStyle } from '../utils/socialIcons';
 
-const getImageClassName = () => 'inline-block h-12 w-12';
+const getImageClassName = (size) => (size === 'compact' ? 'inline-block h-10 w-10' : 'inline-block h-12 w-12');
 const getImageStyle = (link) =>
   link.key === 'instagram'
     ? {
@@ -10,7 +10,7 @@ const getImageStyle = (link) =>
       }
     : getBrandMaskedIconStyle(link.icon);
 
-const CompanyActionButtons = ({ company, centered = false }) => {
+const CompanyActionButtons = ({ company, centered = false, size = 'default' }) => {
   const actionLinks = company?.actionLinks?.filter((link) => link.href) || [];
 
   if (actionLinks.length === 0) {
@@ -34,7 +34,7 @@ const CompanyActionButtons = ({ company, centered = false }) => {
           >
             <span
               aria-hidden="true"
-              className={getImageClassName()}
+              className={getImageClassName(size)}
               style={getImageStyle(link)}
             />
           </a>

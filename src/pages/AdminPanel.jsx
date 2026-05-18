@@ -3,18 +3,21 @@ import { Link } from 'react-router-dom';
 import {
   Briefcase,
   Building2,
+  Copy,
   Eye,
   Loader2,
   Mail,
   Phone,
   RefreshCw,
   Search,
+  Share2,
   Trash2,
   Users,
 } from 'lucide-react';
 import { COMPANIES, getCompanyCode, getCompanyLabel } from '../constants/companies';
 import api from '../utils/api';
 import { getStoredUser } from '../utils/auth';
+import { buildPublicProfileUrl } from '../utils/profileCard';
 
 const inputClassName =
   'w-full rounded-2xl border border-black/10 bg-[#f4f4f4] px-4 py-3 text-sm text-black outline-none transition focus:border-black/20 focus:ring-4 focus:ring-black/8';
@@ -24,6 +27,10 @@ const primaryButtonClassName =
   'inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
 const compactPrimaryButtonClassName =
   'inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
+const slimInputClassName =
+  'w-full min-h-10 rounded-xl border border-black/10 bg-[#f4f4f4] px-4 py-2 text-sm text-black outline-none transition focus:border-black/20 focus:ring-4 focus:ring-black/8';
+const slimPrimaryButtonClassName =
+  'inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
 const disabledPrimaryButtonClassName =
   'disabled:cursor-not-allowed disabled:border-[var(--color-brand-red)]/45 disabled:bg-[var(--color-brand-red)]/45 disabled:text-white/80';
 
@@ -41,6 +48,7 @@ const matchesUserSearch = (user, searchValue) => {
     user.department,
     user.jobRole,
     user.phoneNumber,
+    user.mobileNumber,
     user.company,
     getCompanyLabel(user.company),
     user.role,
@@ -221,6 +229,68 @@ const AdminPanel = () => {
     }
   };
 
+  const getEmployeePublicCardUrl = (user) => {
+    if (!user?.shareSlug || !user?.profileCompleted) {
+      return '';
+    }
+
+    return buildPublicProfileUrl(user.shareSlug, user.fullName, user.employeeNumber);
+  };
+
+  const handleCopyPublicCardLink = async (user) => {
+    const publicCardUrl = getEmployeePublicCardUrl(user);
+
+    if (!publicCardUrl) {
+      setError(`${user.fullName || user.employeeNumber} does not have a public profile card yet.`);
+      setSuccess('');
+      return;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(publicCardUrl);
+        setError('');
+        setSuccess(`Public profile link copied for ${user.fullName || user.employeeNumber}.`);
+        return;
+      }
+
+      window.prompt('Copy this public profile link:', publicCardUrl);
+      setError('');
+      setSuccess(`Public profile link ready to copy for ${user.fullName || user.employeeNumber}.`);
+    } catch (copyError) {
+      setError(copyError?.message || 'We could not copy that public profile link right now.');
+      setSuccess('');
+    }
+  };
+
+  const handleSharePublicCardLink = async (user) => {
+    const publicCardUrl = getEmployeePublicCardUrl(user);
+
+    if (!publicCardUrl) {
+      setError(`${user.fullName || user.employeeNumber} does not have a public profile card yet.`);
+      setSuccess('');
+      return;
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${user.fullName || user.employeeNumber} | Employee Card`,
+          text: `View ${(user.fullName || user.employeeNumber)}'s employee visiting card.`,
+          url: publicCardUrl,
+        });
+        setError('');
+        setSuccess(`Public profile link shared for ${user.fullName || user.employeeNumber}.`);
+        return;
+      }
+
+      await handleCopyPublicCardLink(user);
+    } catch (shareError) {
+      setError(shareError?.message || 'We could not share that public profile link right now.');
+      setSuccess('');
+    }
+  };
+
   const selectedCompanyLabel = getCompanyLabel(selectedCompany);
 
   return (
@@ -300,17 +370,17 @@ const AdminPanel = () => {
             </div>
           </div>
 
-          <div className="mt-6 rounded-[1.6rem] border border-black/10 bg-[#f7f7f7] p-5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-              <div className="max-w-2xl">
-                <h3 className="text-lg font-black text-black">Grant admin access</h3>
+          <div className="mt-6 rounded-[1.35rem] border border-black/10 bg-[#f7f7f7] p-3.5">
+            <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
+              <div className="max-w-xl">
+                <h3 className="text-[0.96rem] font-bold text-black">Grant admin access</h3>
               </div>
 
-              <div className="flex w-full flex-col gap-3 sm:flex-row xl:max-w-2xl">
+              <div className="flex w-full flex-col gap-2 sm:flex-row xl:max-w-[44rem]">
                 <select
                   value={selectedPromotionUserId}
                   onChange={(event) => setSelectedPromotionUserId(event.target.value)}
-                  className={inputClassName}
+                  className={slimInputClassName}
                   disabled={eligibleUsers.length === 0}
                 >
                   <option value="">
@@ -328,7 +398,7 @@ const AdminPanel = () => {
                 <button
                   onClick={handlePromoteSelectedUser}
                   disabled={!selectedPromotionUserId || isPromotingSelectedUser}
-                  className={`${primaryButtonClassName} ${disabledPrimaryButtonClassName}`}
+                  className={`${slimPrimaryButtonClassName} ${disabledPrimaryButtonClassName}`}
                 >
                   {isPromotingSelectedUser ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Make admin
@@ -490,84 +560,108 @@ const AdminPanel = () => {
                 No employee records found for {selectedCompanyLabel}.
               </div>
             ) : (
-              employeeRecords.map((user) => (
-                <div
-                  key={user._id}
-                  className="rounded-[1.6rem] border border-black/10 bg-white p-5"
-                >
-                  <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-[#ededed] text-black/65">
-                        {user.profileImage ? (
-                          <img
-                            src={user.profileImage}
-                            alt={user.fullName || user.employeeNumber}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <Users className="h-7 w-7" />
-                        )}
-                      </div>
+              employeeRecords.map((user) => {
+                const hasPublicCard = Boolean(getEmployeePublicCardUrl(user));
 
-                      <div>
-                        <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="text-xl font-bold text-black">
-                            {user.fullName || user.employeeNumber}
-                          </h3>
-                          <span className="rounded-full border border-black/10 bg-[#f0f0f0] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-black">
-                            {user.employeeNumber || 'No employee number'}
-                          </span>
+                return (
+                  <div
+                    key={user._id}
+                    className="rounded-[1.6rem] border border-black/10 bg-white p-5"
+                  >
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-[#ededed] text-black/65">
+                          {user.profileImage ? (
+                            <img
+                              src={user.profileImage}
+                              alt={user.fullName || user.employeeNumber}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <Users className="h-7 w-7" />
+                          )}
                         </div>
 
-                        <div className="mt-3 grid gap-2 text-sm text-black/70 sm:grid-cols-2">
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-black/70" />
-                            {user.email || 'Email not added yet'}
+                        <div>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <h3 className="text-xl font-bold text-black">
+                              {user.fullName || user.employeeNumber}
+                            </h3>
+                            <span className="rounded-full border border-black/10 bg-[#f0f0f0] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-black">
+                              {user.employeeNumber || 'No employee number'}
+                            </span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-black/70" />
-                            {user.phoneNumber || 'Phone not added yet'}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-black/70" />
-                            {getCompanyLabel(user.company) || 'No company added yet'}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Briefcase className="h-4 w-4 text-black/70" />
-                            {user.department || 'Department not added yet'}
-                          </div>
-                          <div className="flex items-center gap-2 sm:col-span-2">
-                            <Briefcase className="h-4 w-4 text-black/70" />
-                            {user.jobRole || 'Role not added yet'}
+
+                          <div className="mt-3 grid gap-2 text-sm text-black/70 sm:grid-cols-2">
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-black/70" />
+                              {user.email || 'Email not added yet'}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-black/70" />
+                              {user.phoneNumber || 'Phone not added yet'}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-black/70" />
+                              {getCompanyLabel(user.company) || 'No company added yet'}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Briefcase className="h-4 w-4 text-black/70" />
+                              {user.department || 'Department not added yet'}
+                            </div>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                              <Briefcase className="h-4 w-4 text-black/70" />
+                              {user.jobRole || 'Role not added yet'}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex flex-wrap gap-3">
-                      <Link
-                        to={`/admin/profile/${user._id}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
-                      >
-                        <Eye className="h-4 w-4" />
-                        View profile
-                      </Link>
-                      <button
-                        onClick={() => handleDeleteUser(user)}
-                        disabled={user._id === userInfo?._id || pendingDeleteUserId === String(user._id)}
-                        className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35"
-                      >
-                        {pendingDeleteUserId === String(user._id) ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                        Delete
-                      </button>
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleCopyPublicCardLink(user)}
+                          disabled={!hasPublicCard}
+                          title={hasPublicCard ? 'Copy public profile link' : 'Public profile card not available yet'}
+                          aria-label={hasPublicCard ? 'Copy public profile link' : 'Public profile card not available yet'}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35 disabled:hover:bg-white"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSharePublicCardLink(user)}
+                          disabled={!hasPublicCard}
+                          title={hasPublicCard ? 'Share public profile link' : 'Public profile card not available yet'}
+                          aria-label={hasPublicCard ? 'Share public profile link' : 'Public profile card not available yet'}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35 disabled:hover:bg-white"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </button>
+                        <Link
+                          to={`/admin/profile/${user._id}`}
+                          className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3]"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View profile
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteUser(user)}
+                          disabled={user._id === userInfo?._id || pendingDeleteUserId === String(user._id)}
+                          className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35"
+                        >
+                          {pendingDeleteUserId === String(user._id) ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </section>

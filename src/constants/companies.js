@@ -7,6 +7,8 @@ const FALCON_COMPANY_OVERVIEW =
 const QUICK_TEA_COMPANY_OVERVIEW =
   "Quick Tea (Pvt) Limited, incorporated in 1972 as a subsidiary of Akbar Brothers Limited, operates one of Sri Lanka's largest teabag manufacturing facilities with a capacity of more than 3 billion teabags per year. The company is also recognized for its sustainability leadership, including Carbon-Inset certification supported by renewable energy initiatives and greenhouse gas reduction efforts across its value chain.";
 
+const SHARED_COMPANY_ADDRESS = 'No. 334, T.B. Jayah Mawatha, Colombo 10, Sri Lanka.';
+
 const AKBAR_ACTION_LINKS = [
   {
     key: 'linkedin',
@@ -31,37 +33,25 @@ const AKBAR_ACTION_LINKS = [
   },
 ];
 
-const FALCON_ACTION_LINKS = [
-  {
-    key: 'gmail',
-    alt: 'Gmail',
-    href: 'mailto:info@falconfoods.lk',
-    icon: '/gmail.png',
-    iconType: 'image',
-  },
-  {
-    key: 'phone',
-    alt: 'Phone',
-    href: 'tel:+94112697151',
-    icon: '/phone.png',
-    iconType: 'image',
-  },
-];
-
 export const COMPANIES = [
   {
     code: 'A',
     id: 'Company A',
     name: 'Akbar Brothers',
     description: 'Estate operations and premium tea production teams.',
-    companyName: 'Akbar Brothers',
+    companyName: 'Akbar Brothers (Pvt) Ltd',
     companyOverview: AKBAR_COMPANY_OVERVIEW,
-    address: 'No. 334, T.B. Jayah Mawatha, Colombo 10, Sri Lanka.',
+    address: SHARED_COMPANY_ADDRESS,
+    emailAddress: 'contactus@akbar.com',
+    phoneDisplay: '(+94)11 2697151',
+    phoneUrl: 'tel:+94112697151',
     websiteLabel: 'www.akbargroup.lk',
     websiteUrl: 'https://www.akbargroup.lk',
     logo: '/akbar-corporate-logo.png',
+    footerLogo: '/akbar-brand-logo.png',
+    footerLogoAlt: 'Akbar Brothers brand logo',
     actionLinks: AKBAR_ACTION_LINKS,
-    aliases: ['Company A', 'Akbar Brothers'],
+    aliases: ['Company A', 'Akbar Brothers', 'Akbar Brothers (Pvt) Ltd'],
   },
   {
     code: 'B',
@@ -70,8 +60,16 @@ export const COMPANIES = [
     description: 'Bakery and confectionery ingredient distribution teams across Sri Lanka.',
     companyName: 'Falcon Trading (Pvt) Ltd',
     companyOverview: FALCON_COMPANY_OVERVIEW,
+    address: SHARED_COMPANY_ADDRESS,
+    emailAddress: 'info@falconfoods.lk',
+    phoneDisplay: '+94 11 269 7151',
+    phoneUrl: 'tel:+94112697151',
+    websiteLabel: 'falconfoods.lk',
+    websiteUrl: 'https://falconfoods.lk/',
     logo: '/falconfoods.png',
-    actionLinks: FALCON_ACTION_LINKS,
+    footerLogo: '/akbar-corporate-logo.png',
+    footerLogoAlt: 'Akbar Brothers corporate logo',
+    actionLinks: [],
     aliases: ['Company B', 'Company 2', 'Falcon Trading', 'Falcon Trading (Pvt) Ltd'],
   },
   {
@@ -79,11 +77,19 @@ export const COMPANIES = [
     id: 'Company C',
     name: 'Quick Tea',
     description: 'Teabag manufacturing and sustainability-focused tea operations.',
-    companyName: 'Quick Tea (Pvt) Limited',
+    companyName: 'Quick Tea (Pvt) Ltd',
     companyOverview: QUICK_TEA_COMPANY_OVERVIEW,
+    address: SHARED_COMPANY_ADDRESS,
+    emailAddress: 'contactus@akbar.com',
+    phoneDisplay: '(+94)11 2697151',
+    phoneUrl: 'tel:+94112697151',
+    websiteLabel: 'www.akbargroup.lk',
+    websiteUrl: 'https://www.akbargroup.lk',
     logo: '/quick-tea-logo.png',
+    footerLogo: '/akbar-brand-logo.png',
+    footerLogoAlt: 'Akbar Brothers brand logo',
     actionLinks: AKBAR_ACTION_LINKS,
-    aliases: ['Company C', 'Company 3', 'Quick Tea', 'Quick Tea (Pvt) Limited'],
+    aliases: ['Company C', 'Company 3', 'Quick Tea', 'Quick Tea (Pvt) Ltd', 'Quick Tea (Pvt) Limited'],
   },
 ];
 

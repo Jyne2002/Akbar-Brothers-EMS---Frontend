@@ -4,10 +4,9 @@ import { getBrandMaskedIconStyle } from '../utils/socialIcons';
 
 const PublicProfileCardLayout = ({
   profile,
+  companyName,
   companyLogoSrc,
   companyLogoAlt,
-  footerLogoSrc,
-  footerLogoAlt,
   profileRows,
   initials,
   publicCompanyInfoPath,
@@ -35,7 +34,7 @@ const PublicProfileCardLayout = ({
       </button>
     ) : null}
 
-    <div className="relative flex min-h-[8.4rem] items-start justify-center bg-[linear-gradient(180deg,_rgba(255,255,255,0.98)_0%,_rgba(243,243,243,0.94)_100%)] px-6 pb-2 pt-2.5 text-center">
+    <div className="relative flex min-h-[8.4rem] items-start justify-center bg-white px-6 pb-2 pt-2.5 text-center">
       <img
         src={companyLogoSrc}
         alt={companyLogoAlt}
@@ -60,14 +59,20 @@ const PublicProfileCardLayout = ({
         </h2>
 
         {profile.department ? (
-          <p className="mt-1.5 text-[0.72rem] font-bold uppercase tracking-[0.18em] text-black/82">
+          <p className="mt-2 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-black/82">
             {profile.department}
           </p>
         ) : null}
 
         {profile.jobRole ? (
-          <p className="mx-auto mt-0.5 max-w-[15.5rem] text-[1rem] font-semibold leading-6 text-[var(--color-brand-ink)]/78">
+          <p className="mx-auto mt-2 max-w-[16rem] text-[1rem] font-normal leading-6 text-[var(--color-brand-ink)]/82">
             {profile.jobRole}
+          </p>
+        ) : null}
+
+        {companyName ? (
+          <p className="mx-auto mt-1 max-w-[16.5rem] text-[0.98rem] font-normal leading-6 text-[var(--color-brand-ink)]/72">
+            {companyName}
           </p>
         ) : null}
       </div>
@@ -77,27 +82,19 @@ const PublicProfileCardLayout = ({
           {profileRows.map((row, index) => (
             <div
               key={row.label}
-              className={`grid grid-cols-[5rem_minmax(0,1fr)] items-start gap-3 ${
+              className={`grid grid-cols-[5.5rem_minmax(0,1fr)] items-start gap-2.5 ${
                 index === profileRows.length - 1 ? '' : 'border-b border-black/10 pb-2.5'
               }`}
             >
-              <span className="text-[0.83rem] font-bold uppercase tracking-[0.12em] text-black">
+              <span className="text-[0.83rem] font-bold uppercase tracking-[0.12em] leading-5 text-black">
                 {row.label}
               </span>
-              {row.extension ? (
-                <div className="flex min-w-0 flex-wrap items-center gap-2 pt-0.5">
-                  <span className="min-w-0 break-words text-[0.94rem] leading-5 text-[var(--color-brand-ink)]/82">
-                    {row.value}
-                  </span>
-                  <span className="inline-flex items-center rounded-full border border-black/10 bg-[#f3f3f3] px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-black/70">
-                    EXT {row.extension}
-                  </span>
-                </div>
-              ) : (
-                <span className="min-w-0 break-words text-[0.94rem] leading-5 text-[var(--color-brand-ink)]/82">
-                  {row.value}
-                </span>
-              )}
+              <span className="min-w-0 break-words text-[0.94rem] leading-5 text-[var(--color-brand-ink)]/82">
+                {row.value}
+                {row.extensionTone ? (
+                  <span className="text-[var(--color-brand-ink)]/48">{row.extensionTone}</span>
+                ) : null}
+              </span>
             </div>
           ))}
         </div>
@@ -209,16 +206,6 @@ const PublicProfileCardLayout = ({
                   {notice}
                 </p>
               )}
-
-              {footerLogoSrc ? (
-                <div className="mt-2.5 flex justify-center">
-                  <img
-                    src={footerLogoSrc}
-                    alt={footerLogoAlt || 'Akbar Brothers logo'}
-                    className="h-12 w-auto max-w-[13rem] object-contain"
-                  />
-                </div>
-              ) : null}
             </div>
           </div>
         </>

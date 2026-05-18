@@ -10,6 +10,7 @@ import {
   downloadProfileAsJpg,
   downloadProfileAsPdf,
   downloadProfileAsVcf,
+  getPhoneWithExtensionParts,
   getWhatsappUrl,
   normalizeLinkedinUrl,
 } from '../utils/profileCard';
@@ -69,13 +70,6 @@ const PublicProfileCard = () => {
   const companyLogoAlt = company?.companyName
     ? `${company.companyName} corporate logo`
     : 'Akbar Brothers corporate logo';
-  const usesAkbarCompanyFooterLogo = company?.code === 'A' || company?.code === 'C';
-  const footerLogoSrc = usesAkbarCompanyFooterLogo
-    ? '/akbar-brand-logo.png'
-    : '/akbar-corporate-logo.png';
-  const footerLogoAlt = usesAkbarCompanyFooterLogo
-    ? 'Akbar Brothers brand logo'
-    : 'Akbar Brothers corporate logo';
 
   const socialLinks = useMemo(
     () =>
@@ -97,15 +91,20 @@ const PublicProfileCard = () => {
   );
 
   const profileRows = useMemo(
-    () => [
-      {
-        label: 'Phone',
-        value: profile?.phoneNumber || 'Not shared yet',
-        extension: profile?.phoneNumber ? profile?.extensionNumber || '' : '',
-      },
-      { label: 'E-mail', value: profile?.email || 'Not shared yet' },
-    ],
-    [profile?.email, profile?.extensionNumber, profile?.phoneNumber],
+    () => {
+      const phoneParts = getPhoneWithExtensionParts(profile?.phoneNumber, profile?.extensionNumber);
+
+      return [
+        {
+          label: 'Phone',
+          value: phoneParts.mainText || phoneParts.combinedText || 'Not shared yet',
+          extensionTone: phoneParts.extensionText,
+        },
+        { label: 'Mobile', value: profile?.mobileNumber || 'Not shared yet' },
+        { label: 'Email', value: profile?.email || 'Not shared yet' },
+      ];
+    },
+    [profile?.email, profile?.extensionNumber, profile?.mobileNumber, profile?.phoneNumber],
   );
 
   const initials = useMemo(
@@ -242,10 +241,9 @@ const PublicProfileCard = () => {
       <div className="mx-auto w-full max-w-[22.5rem]">
         <PublicProfileCardLayout
           profile={profile}
+          companyName={company?.companyName || ''}
           companyLogoSrc={companyLogoSrc}
           companyLogoAlt={companyLogoAlt}
-          footerLogoSrc={footerLogoSrc}
-          footerLogoAlt={footerLogoAlt}
           profileRows={profileRows}
           initials={initials}
           publicCompanyInfoPath={publicCompanyInfoPath}

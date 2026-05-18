@@ -6,11 +6,12 @@ const AuthSliderLayout = ({
   switchPrompt,
   switchLabel,
   switchTo,
+  containerClassName = 'max-w-md',
   children,
 }) => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--color-cream-white)] px-4 py-10 sm:px-6">
-      <div className="w-full max-w-md">
+      <div className={`w-full ${containerClassName}`}>
         <section className="auth-morph-shell rounded-[1.9rem] border border-[var(--color-brand-red)]/10 bg-white px-6 py-8 shadow-[0_26px_54px_rgba(89,10,22,0.08)] sm:px-8 sm:py-10">
           <div className="mb-6 flex justify-center">
             <img

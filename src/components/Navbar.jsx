@@ -12,7 +12,7 @@ const createNavLinkClassName = (sizeClasses) => ({ isActive }) =>
 
 const desktopNavLinkClassName = createNavLinkClassName('px-4 py-2 text-sm');
 const mobileNavLinkClassName = createNavLinkClassName(
-  'px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm',
+  'px-2.5 py-1.5 text-[0.7rem] sm:px-3 sm:text-xs',
 );
 
 const Navbar = () => {
@@ -28,6 +28,13 @@ const Navbar = () => {
 
   const displayName =
     userInfo?.fullName?.trim() || userInfo?.employeeNumber || userInfo?.email || 'Employee';
+  const mobileInitials = (userInfo?.fullName?.trim() || userInfo?.employeeNumber || 'EM')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
 
   const renderNavLinks = (className) => (
     <>
@@ -45,37 +52,45 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-40 border-b border-black/6 bg-white/35 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-4 py-4 lg:hidden">
-          <Link
-            to="/"
-            aria-label="Akbar Brothers EMS home"
-            className="flex w-fit items-center"
-          >
-            <img
-              src="/akbar-corporate-logo.png"
-              alt="Akbar Brothers corporate logo"
-              className="h-12 w-auto object-contain"
-            />
-          </Link>
-
+        <div className="flex items-center justify-between gap-2 py-3 lg:hidden">
           <div className="flex min-w-0 items-center gap-2">
-            <div className="flex shrink-0 items-center gap-2">
+            <Link
+              to="/"
+              aria-label="Akbar Brothers EMS home"
+              className="flex shrink-0 items-center"
+            >
+              <img
+                src="/akbar-corporate-logo.png"
+                alt="Akbar Brothers corporate logo"
+                className="h-10 w-auto object-contain"
+              />
+            </Link>
+
+            <div className="flex min-w-0 shrink items-center gap-1.5">
               {renderNavLinks(mobileNavLinkClassName)}
             </div>
+          </div>
 
-            <div className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-full border border-black/8 bg-white/70 px-3 py-2 text-[var(--color-brand-ink)] shadow-sm backdrop-blur-sm">
-              <span className="min-w-0 truncate text-xs font-semibold sm:text-sm">
-                {displayName}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-brand-red)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)] sm:px-4 sm:py-2 sm:text-sm"
-                title="Logout"
-              >
-                <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                Logout
-              </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-black/10 bg-white text-[0.72rem] font-bold text-[var(--color-brand-ink)] shadow-sm">
+              {userInfo?.profileImage ? (
+                <img
+                  src={userInfo.profileImage}
+                  alt={displayName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                mobileInitials
+              )}
             </div>
+            <button
+              onClick={handleLogout}
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-red)] text-white transition hover:bg-[var(--color-brand-red-dark)]"
+              title="Logout"
+              aria-label="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
 

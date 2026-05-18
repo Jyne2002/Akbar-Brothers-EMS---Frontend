@@ -21,6 +21,10 @@ const getPhoneNumberError = (value) =>
   value && value.length !== PHONE_NUMBER_LENGTH
     ? `Phone number must be exactly ${PHONE_NUMBER_LENGTH} digits`
     : '';
+const getMobileNumberError = (value) =>
+  value && value.length !== PHONE_NUMBER_LENGTH
+    ? `Mobile number must be exactly ${PHONE_NUMBER_LENGTH} digits`
+    : '';
 const getExtensionNumberError = (value) =>
   value && !/^\d{1,6}$/.test(String(value || '').trim()) ? 'EXT number must be 1 to 6 digits' : '';
 const getEmailError = (value) =>
@@ -54,6 +58,7 @@ const emptyProfile = {
   department: '',
   jobRole: '',
   phoneNumber: '',
+  mobileNumber: '',
   extensionNumber: '',
   company: '',
   profileImage: '',
@@ -181,7 +186,7 @@ const MyProfile = () => {
 
   const handleChange = (field, value) => {
     const nextValue =
-      field === 'phoneNumber'
+      field === 'phoneNumber' || field === 'mobileNumber'
         ? value.replace(/\D/g, '').slice(0, PHONE_NUMBER_LENGTH)
         : field === 'extensionNumber'
           ? value.replace(/\D/g, '').slice(0, EXTENSION_NUMBER_MAX_LENGTH)
@@ -256,6 +261,11 @@ const MyProfile = () => {
         return;
       }
 
+      if (mobileNumberError) {
+        setError(mobileNumberError);
+        return;
+      }
+
       if (extensionNumberError) {
         setError(extensionNumberError);
         return;
@@ -311,6 +321,7 @@ const MyProfile = () => {
     ? `${activeCompany.companyName} logo`
     : 'Akbar Brothers corporate logo';
   const phoneNumberError = getPhoneNumberError(formData.phoneNumber || '');
+  const mobileNumberError = getMobileNumberError(formData.mobileNumber || '');
   const extensionNumberError = getExtensionNumberError(formData.extensionNumber || '');
   const emailError = getEmailError(formData.email || '');
   const profileComplete = profile.profileCompleted;
@@ -371,6 +382,9 @@ const MyProfile = () => {
           <p className="mt-1.5 text-sm text-black/78">
             {formData.jobRole || profile.jobRole || 'Employee role will appear here'}
           </p>
+          {activeCompany?.companyName ? (
+            <p className="mt-1 text-sm font-normal text-black/62">{activeCompany.companyName}</p>
+          ) : null}
         </div>
 
         <div className="mt-7 flex flex-col items-center gap-4">
@@ -491,6 +505,22 @@ const MyProfile = () => {
                     disabled={isSaving}
                   />
                   {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Mobile number</label>
+                  <input
+                    type="tel"
+                    value={formData.mobileNumber}
+                    onChange={(event) => handleChange('mobileNumber', event.target.value)}
+                    className={inputClassName}
+                    inputMode="numeric"
+                    pattern="\d{10}"
+                    maxLength={PHONE_NUMBER_LENGTH}
+                    placeholder="0771234567"
+                    disabled={isSaving}
+                  />
+                  {mobileNumberError && <p className="mt-2 text-xs text-black">{mobileNumberError}</p>}
                 </div>
 
                 <div>
@@ -685,6 +715,22 @@ const MyProfile = () => {
                     disabled={isViewingManagedProfile || !isEditing || isSaving}
                   />
                   {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-black">Mobile number</label>
+                  <input
+                    type="tel"
+                    value={formData.mobileNumber}
+                    onChange={(event) => handleChange('mobileNumber', event.target.value)}
+                    className={inputClassName}
+                    inputMode="numeric"
+                    pattern="\d{10}"
+                    maxLength={PHONE_NUMBER_LENGTH}
+                    placeholder="0771234567"
+                    disabled={isViewingManagedProfile || !isEditing || isSaving}
+                  />
+                  {mobileNumberError && <p className="mt-2 text-xs text-black">{mobileNumberError}</p>}
                 </div>
 
                 <div>
