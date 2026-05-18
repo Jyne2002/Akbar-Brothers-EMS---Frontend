@@ -211,11 +211,11 @@ const PublicProfileCardLayout = ({
               )}
 
               {footerLogoSrc ? (
-                <div className="mt-1 flex justify-center">
+                <div className="mt-2.5 flex justify-center">
                   <img
                     src={footerLogoSrc}
                     alt={footerLogoAlt || 'Akbar Brothers logo'}
-                    className="-translate-y-1 h-12 w-auto max-w-[13rem] object-contain"
+                    className="h-12 w-auto max-w-[13rem] object-contain"
                   />
                 </div>
               ) : null}
