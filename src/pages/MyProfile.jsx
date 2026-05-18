@@ -624,7 +624,7 @@ const MyProfile = () => {
                   {!isViewingManagedProfile && !isEditing ? (
                     <button
                       onClick={() => setIsEditing(true)}
-                      className={primaryButtonClassName}
+                      className={`${primaryButtonClassName} -translate-y-1 hover:-translate-y-1.5`}
                     >
                       Edit details
                     </button>
@@ -633,14 +633,14 @@ const MyProfile = () => {
                       <button
                         onClick={handleCancel}
                         disabled={isSaving}
-                        className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-70"
+                        className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition -translate-y-1 hover:-translate-y-1.5 hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:-translate-y-1"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className={`${primaryButtonClassName} disabled:cursor-not-allowed disabled:opacity-80 disabled:hover:bg-[var(--color-brand-red)]`}
+                        className={`${primaryButtonClassName} -translate-y-1 hover:-translate-y-1.5 disabled:cursor-not-allowed disabled:opacity-80 disabled:hover:-translate-y-1 disabled:hover:bg-[var(--color-brand-red)]`}
                       >
                         {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                         Save changes

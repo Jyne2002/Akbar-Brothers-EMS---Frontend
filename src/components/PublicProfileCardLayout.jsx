@@ -54,27 +54,29 @@ const PublicProfileCardLayout = ({
       </div>
 
       <div className="text-center">
-        <h2 className="mx-auto mt-3 max-w-[16rem] text-[1.85rem] font-bold leading-tight text-[var(--color-brand-ink)]">
+        <h2 className="mx-auto mt-3 max-w-[16rem] text-[1.85rem] font-bold leading-[1.08] text-[var(--color-brand-ink)]">
           {profile.fullName}
         </h2>
 
-        {profile.department ? (
-          <p className="mt-2 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-black/82">
-            {profile.department}
-          </p>
-        ) : null}
+        <div className="mt-3 flex flex-col items-center gap-2.5">
+          {profile.department ? (
+            <p className="text-[0.68rem] font-bold uppercase leading-none tracking-[0.18em] text-black/82">
+              {profile.department}
+            </p>
+          ) : null}
 
-        {profile.jobRole ? (
-          <p className="mx-auto mt-2 max-w-[16rem] text-[1rem] font-normal leading-6 text-[var(--color-brand-ink)]/82">
-            {profile.jobRole}
-          </p>
-        ) : null}
+          {profile.jobRole ? (
+            <p className="mx-auto max-w-[16rem] text-[1rem] font-normal leading-[1.2] text-[var(--color-brand-ink)]/82">
+              {profile.jobRole}
+            </p>
+          ) : null}
 
-        {companyName ? (
-          <p className="mx-auto mt-1 max-w-[16.5rem] text-[0.98rem] font-normal leading-6 text-[var(--color-brand-ink)]/72">
-            {companyName}
-          </p>
-        ) : null}
+          {companyName ? (
+            <p className="mx-auto max-w-[16.5rem] text-[0.98rem] font-normal leading-[1.2] text-[var(--color-brand-ink)]/72">
+              {companyName}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-3 rounded-[1.75rem] border border-black/10 bg-white p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
@@ -156,7 +158,7 @@ const PublicProfileCardLayout = ({
                 onClick={onShare}
                 aria-label="Share this card"
                 title="Share this card"
-                className="inline-flex h-9 w-9 items-center justify-center text-black transition hover:-translate-y-0.5"
+                className="inline-flex h-9 w-9 -translate-y-1 items-center justify-center text-black transition hover:-translate-y-1.5"
               >
                 <Share2 className="h-5 w-5" />
               </button>
@@ -166,7 +168,7 @@ const PublicProfileCardLayout = ({
                 onClick={onCopy}
                 aria-label="Copy this card link"
                 title="Copy this card link"
-                className="inline-flex h-9 w-9 items-center justify-center text-black transition hover:-translate-y-0.5"
+                className="inline-flex h-9 w-9 -translate-y-1 items-center justify-center text-black transition hover:-translate-y-1.5"
               >
                 <Copy className="h-5 w-5" />
               </button>
@@ -177,24 +179,24 @@ const PublicProfileCardLayout = ({
                 disabled={downloading}
                 aria-label="Download this card"
                 title="Download this card"
-                className="inline-flex h-9 w-9 items-center justify-center text-black transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex h-9 w-9 -translate-y-1 items-center justify-center text-black transition hover:-translate-y-1.5 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:-translate-y-1"
               >
                 <Download className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-3 border-t border-black/10 pt-3">
+            <div className="mt-3 pt-3">
               <div className="flex justify-center">
                 {publicCompanyInfoPath ? (
                   <Link
                     to={publicCompanyInfoPath}
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-brand-red)] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(142,20,36,0.24)] transition hover:bg-[var(--color-brand-red-dark)]"
+                    className="inline-flex -translate-y-2 items-center justify-center gap-2 rounded-full bg-[var(--color-brand-red)] px-6 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-2.5 hover:bg-[var(--color-brand-red-dark)]"
                   >
                     <Building2 className="h-4 w-4" />
                     About Company
                   </Link>
                 ) : (
-                  <div className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f4f4f4] px-5 py-2.5 text-sm font-semibold text-black/55">
+                  <div className="inline-flex -translate-y-2 items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f4f4f4] px-5 py-2.5 text-sm font-semibold text-black/55">
                     <Building2 className="h-4 w-4" />
                     Company information unavailable
                   </div>
