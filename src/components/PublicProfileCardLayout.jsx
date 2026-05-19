@@ -1,4 +1,4 @@
-import { ArrowLeft, Building2, Copy, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, Building2, Copy, Download, Mail, Phone, Share2, Smartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getBrandMaskedIconStyle } from '../utils/socialIcons';
 
@@ -18,6 +18,7 @@ const PublicProfileCardLayout = ({
   onBack,
   onShare,
   onCopy,
+  onCopyField,
   onToggleDownloadMenu,
   onDownload,
 }) => (
@@ -54,20 +55,14 @@ const PublicProfileCardLayout = ({
       </div>
 
       <div className="text-center">
-        <h2 className="mx-auto mt-3 max-w-[16rem] text-[1.85rem] font-bold leading-[1.08] text-[var(--color-brand-ink)]">
+        <h2 className="mx-auto mt-3 max-w-[16rem] text-[1.65rem] font-semibold leading-[1.1] text-[var(--color-brand-ink)]">
           {profile.fullName}
         </h2>
 
         <div className="mt-3 flex flex-col items-center gap-2.5">
-          {profile.department ? (
-            <p className="text-[0.68rem] font-bold uppercase leading-none tracking-[0.18em] text-black/82">
-              {profile.department}
-            </p>
-          ) : null}
-
-          {profile.jobRole ? (
-            <p className="mx-auto max-w-[16rem] text-[1rem] font-normal leading-[1.2] text-[var(--color-brand-ink)]/82">
-              {profile.jobRole}
+          {[profile.jobRole, profile.department].filter(Boolean).length > 0 ? (
+            <p className="mx-auto max-w-[16rem] text-[0.98rem] font-normal leading-[1.2] text-[var(--color-brand-ink)]/82">
+              {[profile.jobRole, profile.department].filter(Boolean).join(' - ')}
             </p>
           ) : null}
 
@@ -84,12 +79,18 @@ const PublicProfileCardLayout = ({
           {profileRows.map((row, index) => (
             <div
               key={row.label}
-              className={`grid grid-cols-[5.5rem_minmax(0,1fr)] items-start gap-2.5 ${
+              className={`grid grid-cols-[1.5rem_minmax(0,1fr)_2rem] items-start gap-3 ${
                 index === profileRows.length - 1 ? '' : 'border-b border-black/10 pb-2.5'
               }`}
             >
-              <span className="text-[0.83rem] font-bold uppercase tracking-[0.12em] leading-5 text-black">
-                {row.label}
+              <span className="pt-0.5 text-black/78" aria-hidden="true">
+                {row.icon === 'mobile' ? (
+                  <Smartphone className="h-4.5 w-4.5" />
+                ) : row.icon === 'email' ? (
+                  <Mail className="h-4.5 w-4.5" />
+                ) : (
+                  <Phone className="h-4.5 w-4.5" />
+                )}
               </span>
               <span className="min-w-0 break-words text-[0.94rem] leading-5 text-[var(--color-brand-ink)]/82">
                 {row.value}
@@ -97,6 +98,16 @@ const PublicProfileCardLayout = ({
                   <span className="text-[var(--color-brand-ink)]/48">{row.extensionTone}</span>
                 ) : null}
               </span>
+              <button
+                type="button"
+                onClick={() => onCopyField?.(row.label, row.copyValue)}
+                disabled={!row.copyValue}
+                title={`Copy ${row.label.toLowerCase()}`}
+                aria-label={`Copy ${row.label.toLowerCase()}`}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </button>
             </div>
           ))}
         </div>

@@ -1,7 +1,7 @@
 import { getWhatsappUrl, normalizeLinkedinUrl } from '../utils/profileCard';
 import { getBrandMaskedIconStyle } from '../utils/socialIcons';
 
-const ProfileSocialButtons = ({ linkedinUrl, phoneNumber }) => {
+const ProfileSocialButtons = ({ linkedinUrl, whatsappNumber }) => {
   const socialLinks = [
     {
       key: 'linkedin',
@@ -12,7 +12,7 @@ const ProfileSocialButtons = ({ linkedinUrl, phoneNumber }) => {
     {
       key: 'whatsapp',
       alt: 'WhatsApp',
-      href: getWhatsappUrl(phoneNumber),
+      href: getWhatsappUrl(whatsappNumber),
       icon: '/whatsapp.png',
     },
   ];

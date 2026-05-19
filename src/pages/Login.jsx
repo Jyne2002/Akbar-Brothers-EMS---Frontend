@@ -7,6 +7,7 @@ import { setStoredUser } from '../utils/auth';
 
 const inputClassName =
   'mt-2 block w-full rounded-xl border border-[var(--color-brand-red)]/25 bg-white px-4 py-2.5 text-sm text-[var(--color-earth-brown)] shadow-sm outline-none transition focus:border-[var(--color-brand-red)] focus:ring-4 focus:ring-[var(--color-brand-red)]/14';
+const EMPLOYEE_NUMBER_REGEX = /^\d{4}$/;
 
 const Login = () => {
   const [employeeNumber, setEmployeeNumber] = useState('');
@@ -19,6 +20,11 @@ const Login = () => {
     e.preventDefault();
 
     if (isSubmitting) {
+      return;
+    }
+
+    if (!EMPLOYEE_NUMBER_REGEX.test(employeeNumber.trim())) {
+      setError('Employee number must be exactly 4 digits');
       return;
     }
 
@@ -56,10 +62,13 @@ const Login = () => {
           <input
             type="text"
             value={employeeNumber}
-            onChange={(e) => setEmployeeNumber(e.target.value)}
+            onChange={(e) => setEmployeeNumber(e.target.value.replace(/\D/g, '').slice(0, 4))}
             className={inputClassName}
             autoComplete="username"
-            placeholder="AB-1024"
+            placeholder="4 digit employee number"
+            inputMode="numeric"
+            pattern="\d{4}"
+            maxLength={4}
             disabled={isSubmitting}
             required
           />

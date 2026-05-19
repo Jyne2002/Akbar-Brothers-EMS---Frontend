@@ -1,6 +1,20 @@
 import { getCompanyLabel } from '../constants/companies';
 
 const SRI_LANKA_COUNTRY_CODE = '94';
+const CARD_FONT_FAMILY = "'Segoe UI', sans-serif";
+const CARD_BRAND_RED = '#B41F31';
+const createSvgDataUrl = (svg) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+const CONTACT_ICON_SOURCES = {
+  phone: createSvgDataUrl(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#151515" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.61 2.63a2 2 0 0 1-.45 2.11L8 9.99a16 16 0 0 0 6 6l1.53-1.27a2 2 0 0 1 2.11-.45c.85.28 1.73.49 2.63.61A2 2 0 0 1 22 16.92z"/></svg>',
+  ),
+  mobile: createSvgDataUrl(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#151515" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.75" width="10" height="18.5" rx="2.2"/><path d="M11 5.5h2"/><path d="M11.2 17.6h1.6"/></svg>',
+  ),
+  email: createSvgDataUrl(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#151515" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></svg>',
+  ),
+};
 
 export const normalizeLinkedinUrl = (value) => {
   const trimmedValue = typeof value === 'string' ? value.trim() : '';
@@ -367,11 +381,11 @@ const createCardArtwork = async (profile, company) => {
   const nameTop = avatarTop + avatarSize + 16;
   const boxX = cardX + 16;
   const boxWidth = cardWidth - 32;
-  const labelColumnWidth = 88;
-  const rowGap = 16;
+  const iconColumnWidth = 20;
+  const rowGap = 14;
   const boxPadding = 16;
-  const valueColumnX = boxX + boxPadding + labelColumnWidth + rowGap;
-  const valueColumnWidth = boxWidth - boxPadding * 2 - labelColumnWidth - rowGap;
+  const valueColumnX = boxX + boxPadding + iconColumnWidth + rowGap;
+  const valueColumnWidth = boxWidth - boxPadding * 2 - iconColumnWidth - rowGap;
   const departmentValue = String(profile.department || '').trim();
   const jobRoleValue = String(profile.jobRole || '').trim();
   const companyNameValue = String(company?.companyName || getCompanyLabel(profile.company) || '').trim();
@@ -382,9 +396,10 @@ const createCardArtwork = async (profile, company) => {
       value: phoneValue.combinedText || 'Not shared yet',
       mainText: phoneValue.mainText,
       extensionText: phoneValue.extensionText,
+      icon: 'phone',
     },
-    { label: 'Mobile', value: profile.mobileNumber || 'Not shared yet' },
-    { label: 'Email', value: profile.email || 'Not shared yet' },
+    { label: 'Mobile', value: profile.mobileNumber || 'Not shared yet', icon: 'mobile' },
+    { label: 'Email', value: profile.email || 'Not shared yet', icon: 'email' },
   ];
 
   const measurementCanvas = document.createElement('canvas');
@@ -394,24 +409,24 @@ const createCardArtwork = async (profile, company) => {
     throw new Error('Unable to prepare the profile card for download');
   }
 
-  measurementContext.font = '600 15px Inter, Arial, sans-serif';
+  measurementContext.font = `600 15px ${CARD_FONT_FAMILY}`;
   const nameMaxWidth = 248;
   const nameLines = wrapText(measurementContext, profile.fullName || 'Employee Card', nameMaxWidth);
   const nameLineHeight = 34;
   const nameHeight = nameLines.length * nameLineHeight;
 
-  measurementContext.font = '700 12px Inter, Arial, sans-serif';
+  measurementContext.font = `700 12px ${CARD_FONT_FAMILY}`;
   const departmentLines = departmentValue
     ? wrapText(measurementContext, departmentValue.toUpperCase(), 270)
     : [];
   const departmentLineHeight = 18;
   const departmentHeight = departmentLines.length * departmentLineHeight;
 
-  measurementContext.font = '700 18px Inter, Arial, sans-serif';
+  measurementContext.font = `700 18px ${CARD_FONT_FAMILY}`;
   const jobRoleLines = jobRoleValue ? wrapText(measurementContext, jobRoleValue, 270) : [];
   const jobRoleLineHeight = 25;
   const jobRoleHeight = jobRoleLines.length * jobRoleLineHeight;
-  measurementContext.font = '400 14px Inter, Arial, sans-serif';
+  measurementContext.font = `400 14px ${CARD_FONT_FAMILY}`;
   const companyLineHeight = 20;
   const companyLines = companyNameValue ? wrapText(measurementContext, companyNameValue, 270) : [];
   const companyHeight = companyLines.length * companyLineHeight;
@@ -429,10 +444,10 @@ const createCardArtwork = async (profile, company) => {
     subtitleHeight += (subtitleHeight > 0 ? 6 : 0) + companyHeight;
   }
 
-  measurementContext.font = '600 15px Inter, Arial, sans-serif';
+  measurementContext.font = `600 15px ${CARD_FONT_FAMILY}`;
   const detailMeasurements = details.map((detail) => {
     const lines = wrapText(measurementContext, detail.value, valueColumnWidth);
-    const rowContentHeight = Math.max(18, lines.length * 24);
+    const rowContentHeight = Math.max(20, lines.length * 24);
     const canTintExtensionInline = Boolean(
       detail.extensionText &&
         lines.length === 1 &&
@@ -493,6 +508,11 @@ const createCardArtwork = async (profile, company) => {
   context.restore();
 
   const logoSource = company?.logo || '/akbar-corporate-logo.png';
+  const contactIcons = Object.fromEntries(
+    await Promise.all(
+      Object.entries(CONTACT_ICON_SOURCES).map(async ([key, src]) => [key, await loadImage(src)]),
+    ),
+  );
 
   try {
     const logoImage = await loadImage(logoSource);
@@ -511,7 +531,7 @@ const createCardArtwork = async (profile, company) => {
     );
   } catch {
     context.fillStyle = '#151515';
-    context.font = '900 16px Inter, Arial, sans-serif';
+    context.font = `900 16px ${CARD_FONT_FAMILY}`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(
@@ -543,11 +563,11 @@ const createCardArtwork = async (profile, company) => {
       const drawSize = avatarSize - 10;
       context.drawImage(profileImage, avatarCenterX - drawSize / 2, avatarTop + 5, drawSize, drawSize);
     } catch {
-      context.fillStyle = '#b41f31';
+      context.fillStyle = CARD_BRAND_RED;
       context.fillRect(avatarCenterX - avatarSize / 2, avatarTop, avatarSize, avatarSize);
     }
   } else {
-    context.fillStyle = '#b41f31';
+    context.fillStyle = CARD_BRAND_RED;
     context.fillRect(avatarCenterX - avatarSize / 2, avatarTop, avatarSize, avatarSize);
   }
 
@@ -563,14 +583,14 @@ const createCardArtwork = async (profile, company) => {
       .toUpperCase();
 
     context.fillStyle = '#ffffff';
-    context.font = '900 34px Inter, Arial, sans-serif';
+    context.font = `900 34px ${CARD_FONT_FAMILY}`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(initials || 'AB', avatarCenterX, avatarTop + avatarSize / 2 + 2);
   }
 
   context.fillStyle = '#151515';
-  context.font = '900 30px Inter, Arial, sans-serif';
+  context.font = `900 30px ${CARD_FONT_FAMILY}`;
   context.textAlign = 'center';
   context.textBaseline = 'top';
   drawWrappedText(context, nameLines, logicalWidth / 2, nameTop, nameLineHeight);
@@ -579,7 +599,7 @@ const createCardArtwork = async (profile, company) => {
 
   if (departmentLines.length > 0) {
     context.fillStyle = 'rgba(180,31,49,0.84)';
-    context.font = '700 12px Inter, Arial, sans-serif';
+    context.font = `700 12px ${CARD_FONT_FAMILY}`;
     drawWrappedText(context, departmentLines, logicalWidth / 2, subtitleTop, departmentLineHeight);
     subtitleTop += departmentHeight;
   }
@@ -590,7 +610,7 @@ const createCardArtwork = async (profile, company) => {
     }
 
     context.fillStyle = 'rgba(21,21,21,0.8)';
-    context.font = '700 18px Inter, Arial, sans-serif';
+    context.font = `700 18px ${CARD_FONT_FAMILY}`;
     drawWrappedText(context, jobRoleLines, logicalWidth / 2, subtitleTop, jobRoleLineHeight);
     subtitleTop += jobRoleHeight;
   }
@@ -601,7 +621,7 @@ const createCardArtwork = async (profile, company) => {
     }
 
     context.fillStyle = 'rgba(21,21,21,0.66)';
-    context.font = '400 14px Inter, Arial, sans-serif';
+    context.font = `400 14px ${CARD_FONT_FAMILY}`;
     drawWrappedText(context, companyLines, logicalWidth / 2, subtitleTop, companyLineHeight);
   }
 
@@ -615,15 +635,14 @@ const createCardArtwork = async (profile, company) => {
 
   let currentRowY = boxTop + boxPadding;
   detailMeasurements.forEach((detail, index) => {
-    context.fillStyle = '#151515';
-    context.font = '700 13px Inter, Arial, sans-serif';
+    const iconImage = contactIcons[detail.icon];
+    context.font = `600 15px ${CARD_FONT_FAMILY}`;
     context.textAlign = 'left';
     context.textBaseline = 'top';
-    context.fillText(detail.label.toUpperCase(), boxX + boxPadding, currentRowY);
 
-    context.font = '600 15px Inter, Arial, sans-serif';
-    context.textAlign = 'left';
-    context.textBaseline = 'top';
+    if (iconImage) {
+      context.drawImage(iconImage, boxX + boxPadding, currentRowY + 2, 16, 16);
+    }
 
     if (detail.canTintExtensionInline) {
       context.fillStyle = 'rgba(21,21,21,0.82)';

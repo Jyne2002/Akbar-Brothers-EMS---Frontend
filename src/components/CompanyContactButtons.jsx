@@ -1,6 +1,6 @@
 import { Globe, Mail, Phone } from 'lucide-react';
 
-const CompanyContactButtons = ({ company, centered = false, size = 'default' }) => {
+const CompanyContactButtons = ({ company, centered = false, size = 'default', tone = 'dark' }) => {
   const contactLinks = [
     {
       key: 'website',
@@ -31,6 +31,7 @@ const CompanyContactButtons = ({ company, centered = false, size = 'default' }) 
 
   const buttonSizeClassName = size === 'compact' ? 'h-8 w-8' : 'h-9 w-9';
   const iconSizeClassName = size === 'compact' ? 'h-4.5 w-4.5' : 'h-5 w-5';
+  const toneClassName = tone === 'light' ? 'text-white/95 hover:text-white' : 'text-black';
 
   return (
     <div className={`mt-3 flex flex-wrap items-center gap-2.5 ${centered ? 'justify-center' : ''}`}>
@@ -46,7 +47,7 @@ const CompanyContactButtons = ({ company, centered = false, size = 'default' }) 
             rel={isWebLink ? 'noreferrer' : undefined}
             aria-label={`${company?.companyName || company?.name || 'Company'} ${link.alt}`}
             title={link.title}
-            className={`inline-flex items-center justify-center text-black transition hover:-translate-y-0.5 ${buttonSizeClassName}`}
+            className={`inline-flex items-center justify-center transition hover:-translate-y-0.5 ${buttonSizeClassName} ${toneClassName}`}
           >
             <Icon className={iconSizeClassName} />
           </a>

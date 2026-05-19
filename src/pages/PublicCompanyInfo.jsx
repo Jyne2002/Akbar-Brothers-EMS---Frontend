@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2 } from 'lucide-react';
 import CompanyActionButtons from '../components/CompanyActionButtons';
 import CompanyContactButtons from '../components/CompanyContactButtons';
@@ -8,11 +8,13 @@ import { buildPublicProfilePath } from '../utils/profileCard';
 
 const PublicCompanyInfo = () => {
   const { shareSlug, companyId, identitySlug } = useParams();
+  const navigate = useNavigate();
   const company = getCompanyByValue(decodeURIComponent(companyId || ''));
   const [logoErrorCompanyCode, setLogoErrorCompanyCode] = useState('');
   const showLogo = Boolean(company?.logo) && logoErrorCompanyCode !== company?.code;
   const publicProfilePath = buildPublicProfilePath(shareSlug, '', '', identitySlug);
   const backTarget = publicProfilePath || '/';
+  const handleBackToCard = () => navigate(backTarget);
 
   if (!company) {
     return (
@@ -35,16 +37,17 @@ const PublicCompanyInfo = () => {
   }
 
   return (
-    <div className="flex min-h-[100svh] items-center justify-center overflow-hidden bg-[linear-gradient(180deg,_#fdfaf8_0%,_#f6ece5_100%)] px-3 py-2 md:min-h-[100dvh] md:px-4 md:py-3">
-      <section className="relative mx-auto flex min-h-[calc(100svh-1rem)] w-full max-w-sm flex-col rounded-[2.15rem] border border-[var(--color-brand-red)]/10 bg-white px-4 pb-4 pt-3 shadow-[0_22px_44px_rgba(89,10,22,0.08)] sm:max-w-[26.25rem] sm:px-5 sm:pb-5 sm:pt-3.5 md:min-h-[calc(100dvh-1.5rem)]">
-        <Link
-          to={backTarget}
+    <div className="min-h-[100svh] bg-[linear-gradient(180deg,_#fdfaf8_0%,_#f6ece5_100%)] px-3 py-4 md:min-h-[100dvh] md:px-4 md:py-6">
+      <section className="relative mx-auto w-full max-w-sm rounded-[2.15rem] border border-[var(--color-brand-red)]/10 bg-white px-4 pb-4 pt-3 shadow-[0_22px_44px_rgba(89,10,22,0.08)] sm:max-w-[26.25rem] sm:px-5 sm:pb-5 sm:pt-3.5">
+        <button
+          type="button"
+          onClick={handleBackToCard}
           aria-label="Back to card"
           title="Back to card"
           className="absolute left-4 top-4 z-20 inline-flex h-8 w-8 items-center justify-center text-black transition hover:-translate-x-0.5"
         >
           <ArrowLeft className="h-5 w-5" />
-        </Link>
+        </button>
 
         <div className="flex min-h-[8rem] items-start justify-center px-2 pt-2 sm:min-h-[9rem] sm:px-3 sm:pt-2">
           {showLogo ? (
@@ -73,23 +76,24 @@ const PublicCompanyInfo = () => {
           <CompanyActionButtons company={company} centered />
         </div>
 
-        {company.address || company.websiteUrl || company.emailAddress || company.phoneUrl ? (
-          <div className="mt-4 text-center">
-            {company.address ? (
-              <p className="text-sm leading-6 text-black/78">{company.address}</p>
+        {(company.footerLogo || company.address || company.websiteUrl || company.emailAddress || company.phoneUrl) ? (
+          <div className="-mb-4 -mx-4 mt-5 rounded-b-[2.15rem] bg-[var(--color-brand-red)] px-5 py-5 text-center text-white sm:-mb-5 sm:-mx-5">
+            {company.footerLogo ? (
+              <div className="flex justify-center">
+                <img
+                  src="/akbar-footer-logo.png"
+                  alt="Akbar Brothers footer logo"
+                  className="h-9 w-auto max-w-[13rem] object-contain sm:h-[3.1rem]"
+                />
+              </div>
             ) : null}
-            <CompanyContactButtons company={company} centered />
-          </div>
-        ) : null}
 
-        {company.footerLogo ? (
-          <div className="mt-auto pt-5">
-            <div className="flex justify-center">
-              <img
-                src={company.footerLogo}
-                alt={company.footerLogoAlt || `${company.companyName} footer logo`}
-                className="h-14 w-auto max-w-[16rem] object-contain sm:h-[4.75rem]"
-              />
+            {company.address ? (
+              <p className="mt-4 text-sm leading-6 text-white/88">{company.address}</p>
+            ) : null}
+
+            <div className="mt-4">
+              <CompanyContactButtons company={company} centered tone="light" />
             </div>
           </div>
         ) : null}

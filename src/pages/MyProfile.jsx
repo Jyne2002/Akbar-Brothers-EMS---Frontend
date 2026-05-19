@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Building2, Camera, Loader2, Save, Share2 } from 'lucide-react';
+import { Building2, Camera, Loader2, Save, Share2, SquarePen } from 'lucide-react';
 import ProfileImageEditorModal from '../components/ProfileImageEditorModal';
 import ProfileSocialButtons from '../components/ProfileSocialButtons';
 import { COMPANIES, getCompanyByValue } from '../constants/companies';
@@ -16,6 +16,7 @@ const compactPrimaryButtonClassName =
   'inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-brand-red)] bg-[var(--color-brand-red)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]';
 const PHONE_NUMBER_LENGTH = 10;
 const EXTENSION_NUMBER_MAX_LENGTH = 6;
+
 const isValidEmailAddress = (value) => String(value || '').trim().includes('@');
 const getPhoneNumberError = (value) =>
   value && value.length !== PHONE_NUMBER_LENGTH
@@ -25,10 +26,15 @@ const getMobileNumberError = (value) =>
   value && value.length !== PHONE_NUMBER_LENGTH
     ? `Mobile number must be exactly ${PHONE_NUMBER_LENGTH} digits`
     : '';
+const getWhatsappNumberError = (value) =>
+  value && value.length !== PHONE_NUMBER_LENGTH
+    ? `WhatsApp number must be exactly ${PHONE_NUMBER_LENGTH} digits`
+    : '';
 const getExtensionNumberError = (value) =>
   value && !/^\d{1,6}$/.test(String(value || '').trim()) ? 'EXT number must be 1 to 6 digits' : '';
 const getEmailError = (value) =>
   value && !isValidEmailAddress(value) ? 'Email address must include @' : '';
+
 const getApiErrorMessage = (error, fallbackMessage, managedProfileFallbackMessage = '') => {
   const responseData = error?.response?.data;
 
@@ -55,6 +61,7 @@ const emptyProfile = {
   fullName: '',
   email: '',
   linkedinUrl: '',
+  whatsappNumber: '',
   department: '',
   jobRole: '',
   phoneNumber: '',
@@ -186,7 +193,7 @@ const MyProfile = () => {
 
   const handleChange = (field, value) => {
     const nextValue =
-      field === 'phoneNumber' || field === 'mobileNumber'
+      field === 'phoneNumber' || field === 'mobileNumber' || field === 'whatsappNumber'
         ? value.replace(/\D/g, '').slice(0, PHONE_NUMBER_LENGTH)
         : field === 'extensionNumber'
           ? value.replace(/\D/g, '').slice(0, EXTENSION_NUMBER_MAX_LENGTH)
@@ -242,8 +249,14 @@ const MyProfile = () => {
     handleImageEditorClose();
   };
 
+  const phoneNumberError = getPhoneNumberError(formData.phoneNumber || '');
+  const mobileNumberError = getMobileNumberError(formData.mobileNumber || '');
+  const whatsappNumberError = getWhatsappNumberError(formData.whatsappNumber || '');
+  const extensionNumberError = getExtensionNumberError(formData.extensionNumber || '');
+  const emailError = getEmailError(formData.email || '');
+
   const handleSave = async () => {
-    if (!isOwnProfile || isSaving) {
+    if (isSaving) {
       return;
     }
 
@@ -266,6 +279,11 @@ const MyProfile = () => {
         return;
       }
 
+      if (whatsappNumberError) {
+        setError(whatsappNumberError);
+        return;
+      }
+
       if (extensionNumberError) {
         setError(extensionNumberError);
         return;
@@ -274,18 +292,27 @@ const MyProfile = () => {
       const config = {
         headers: { Authorization: `Bearer ${userInfo?.token}` },
       };
+      const endpoint = isViewingManagedProfile
+        ? `/api/auth/users/${userId}`
+        : '/api/auth/profile';
 
       setIsSaving(true);
-      const { data } = await api.put('/api/auth/profile', formData, config);
-      setStoredUser(data);
+      const { data } = await api.put(endpoint, formData, config);
+
+      if (isOwnProfile) {
+        setStoredUser(data);
+      }
+
       setProfile(data);
       setFormData(data);
       setIsEditing(false);
       hasLocalChangesRef.current = false;
       setSuccess(
-        data.profileCompleted
-          ? 'Your profile has been saved successfully.'
-          : 'Please complete all required fields before saving.',
+        isViewingManagedProfile
+          ? 'Employee details saved successfully.'
+          : data.profileCompleted
+            ? 'Your profile has been saved successfully.'
+            : 'Please complete all required fields before saving.',
       );
     } catch (saveError) {
       setError(getApiErrorMessage(saveError, 'Failed to save profile details'));
@@ -320,16 +347,178 @@ const MyProfile = () => {
   const profileCardLogoAlt = activeCompany?.companyName
     ? `${activeCompany.companyName} logo`
     : 'Akbar Brothers corporate logo';
-  const phoneNumberError = getPhoneNumberError(formData.phoneNumber || '');
-  const mobileNumberError = getMobileNumberError(formData.mobileNumber || '');
-  const extensionNumberError = getExtensionNumberError(formData.extensionNumber || '');
-  const emailError = getEmailError(formData.email || '');
+  const displayRole = formData.jobRole || profile.jobRole;
+  const displayDepartment = formData.department || profile.department;
+  const roleDepartmentLabel = [displayRole, displayDepartment].filter(Boolean).join(' - ');
   const profileComplete = profile.profileCompleted;
   const publicCardPath =
     isOwnProfile && profile.profileCompleted && profile.shareSlug
       ? buildPublicProfilePath(profile.shareSlug, profile.fullName, profile.employeeNumber)
       : '';
   const showSetupFlow = isOwnProfile && !profileComplete;
+  const fieldDisabled = isSaving || !isEditing;
+
+  const renderTextField = ({
+    key,
+    label,
+    field,
+    type = 'text',
+    placeholder = '',
+    inputMode,
+    pattern,
+    maxLength,
+    disabled = fieldDisabled,
+    className = '',
+  }) => (
+    <div key={key} className={className}>
+      <label className="text-sm font-semibold text-black">{label}</label>
+      <input
+        type={type}
+        value={formData[field] || ''}
+        onChange={(event) => handleChange(field, event.target.value)}
+        className={inputClassName}
+        placeholder={placeholder}
+        inputMode={inputMode}
+        pattern={pattern}
+        maxLength={maxLength}
+        disabled={disabled}
+      />
+    </div>
+  );
+
+  const renderErrorText = (message) =>
+    message ? <p className="mt-2 text-xs text-black">{message}</p> : null;
+
+  const renderCompanyField = () => (
+    <div key="company">
+      <label className="text-sm font-semibold text-black">Company</label>
+      <select
+        value={formData.company || ''}
+        onChange={(event) => handleChange('company', event.target.value)}
+        className={inputClassName}
+        disabled={fieldDisabled}
+      >
+        <option value="" disabled hidden>
+          Select company
+        </option>
+        {COMPANIES.map((company) => (
+          <option key={company.code} value={company.code}>
+            {company.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const FormFields = () => (
+    <div className="mt-5 grid gap-4 md:grid-cols-2">
+      <div>
+        <label className="text-sm font-semibold text-black">Employee number</label>
+        <input type="text" value={formData.employeeNumber} className={inputClassName} disabled />
+      </div>
+
+      {renderTextField({
+        key: 'fullName',
+        label: 'Full name',
+        field: 'fullName',
+        placeholder: 'First name and last name',
+      })}
+
+      {renderTextField({
+        key: 'jobRole',
+        label: 'Role',
+        field: 'jobRole',
+      })}
+
+      {renderTextField({
+        key: 'department',
+        label: 'Department',
+        field: 'department',
+      })}
+
+      <div>
+        {renderTextField({
+          key: 'phoneNumber',
+          label: 'Phone number',
+          field: 'phoneNumber',
+          type: 'tel',
+          inputMode: 'numeric',
+          pattern: '\\d{10}',
+          maxLength: PHONE_NUMBER_LENGTH,
+          placeholder: '0712345678',
+          className: '',
+        })}
+        {renderErrorText(phoneNumberError)}
+      </div>
+
+      <div>
+        {renderTextField({
+          key: 'mobileNumber',
+          label: 'Mobile number',
+          field: 'mobileNumber',
+          type: 'tel',
+          inputMode: 'numeric',
+          pattern: '\\d{10}',
+          maxLength: PHONE_NUMBER_LENGTH,
+          placeholder: '0771234567',
+          className: '',
+        })}
+        {renderErrorText(mobileNumberError)}
+      </div>
+
+      <div>
+        {renderTextField({
+          key: 'email',
+          label: 'Email address',
+          field: 'email',
+          type: 'email',
+        })}
+        {renderErrorText(emailError)}
+      </div>
+
+      <div>
+        {renderTextField({
+          key: 'extensionNumber',
+          label: 'EXT number (optional)',
+          field: 'extensionNumber',
+          type: 'tel',
+          inputMode: 'numeric',
+          pattern: '\\d{1,6}',
+          maxLength: EXTENSION_NUMBER_MAX_LENGTH,
+          placeholder: '247',
+        })}
+        {renderErrorText(extensionNumberError)}
+      </div>
+
+      <div>
+        {renderTextField({
+          key: 'whatsappNumber',
+          label: 'WhatsApp number',
+          field: 'whatsappNumber',
+          type: 'tel',
+          inputMode: 'numeric',
+          pattern: '\\d{10}',
+          maxLength: PHONE_NUMBER_LENGTH,
+          placeholder: '0771234567',
+        })}
+        {renderErrorText(whatsappNumberError)}
+      </div>
+
+      <div className="md:col-span-2">
+        <label className="text-sm font-semibold text-black">LinkedIn profile</label>
+        <input
+          type="url"
+          value={formData.linkedinUrl || ''}
+          onChange={(event) => handleChange('linkedinUrl', event.target.value)}
+          className={inputClassName}
+          placeholder="Linkedin profile URL"
+          disabled={fieldDisabled}
+        />
+      </div>
+
+      {renderCompanyField()}
+    </div>
+  );
 
   if (loading) {
     return (
@@ -380,7 +569,7 @@ const MyProfile = () => {
             {formData.fullName || profile.fullName || 'Complete your profile'}
           </h1>
           <p className="mt-1.5 text-sm text-black/78">
-            {formData.jobRole || profile.jobRole || 'Employee role will appear here'}
+            {roleDepartmentLabel || 'Employee role and department will appear here'}
           </p>
           {activeCompany?.companyName ? (
             <p className="mt-1 text-sm font-normal text-black/62">{activeCompany.companyName}</p>
@@ -390,7 +579,7 @@ const MyProfile = () => {
         <div className="mt-7 flex flex-col items-center gap-4">
           <ProfileSocialButtons
             linkedinUrl={formData.linkedinUrl}
-            phoneNumber={formData.phoneNumber}
+            whatsappNumber={formData.whatsappNumber}
           />
 
           <div className="mt-auto flex flex-wrap items-center justify-center gap-3 pt-6">
@@ -452,134 +641,7 @@ const MyProfile = () => {
                 </div>
               )}
 
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="text-sm font-semibold text-black">Employee number</label>
-                  <input type="text" value={formData.employeeNumber} className={inputClassName} disabled />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Full name</label>
-                  <input
-                    type="text"
-                    value={formData.fullName}
-                    onChange={(event) => handleChange('fullName', event.target.value)}
-                    className={inputClassName}
-                    disabled={isSaving}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Department</label>
-                  <input
-                    type="text"
-                    value={formData.department}
-                    onChange={(event) => handleChange('department', event.target.value)}
-                    className={inputClassName}
-                    disabled={isSaving}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Role</label>
-                  <input
-                    type="text"
-                    value={formData.jobRole}
-                    onChange={(event) => handleChange('jobRole', event.target.value)}
-                    className={inputClassName}
-                    disabled={isSaving}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Phone number</label>
-                  <input
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(event) => handleChange('phoneNumber', event.target.value)}
-                    className={inputClassName}
-                    inputMode="numeric"
-                    pattern="\d{10}"
-                    maxLength={PHONE_NUMBER_LENGTH}
-                    placeholder="0712345678"
-                    disabled={isSaving}
-                  />
-                  {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Mobile number</label>
-                  <input
-                    type="tel"
-                    value={formData.mobileNumber}
-                    onChange={(event) => handleChange('mobileNumber', event.target.value)}
-                    className={inputClassName}
-                    inputMode="numeric"
-                    pattern="\d{10}"
-                    maxLength={PHONE_NUMBER_LENGTH}
-                    placeholder="0771234567"
-                    disabled={isSaving}
-                  />
-                  {mobileNumberError && <p className="mt-2 text-xs text-black">{mobileNumberError}</p>}
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Email address</label>
-                  <input
-                    type="email"
-                    value={formData.email || ''}
-                    onChange={(event) => handleChange('email', event.target.value)}
-                    className={inputClassName}
-                    disabled={isSaving}
-                  />
-                  {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">EXT number (optional)</label>
-                  <input
-                    type="tel"
-                    value={formData.extensionNumber || ''}
-                    onChange={(event) => handleChange('extensionNumber', event.target.value)}
-                    className={inputClassName}
-                    inputMode="numeric"
-                    pattern="\d{1,6}"
-                    maxLength={EXTENSION_NUMBER_MAX_LENGTH}
-                    placeholder="247"
-                    disabled={isSaving}
-                  />
-                  {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="text-sm font-semibold text-black">LinkedIn profile</label>
-                  <input
-                    type="url"
-                    value={formData.linkedinUrl || ''}
-                    onChange={(event) => handleChange('linkedinUrl', event.target.value)}
-                    className={inputClassName}
-                    placeholder="linkedin.com/in/your-profile"
-                    disabled={isSaving}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Company</label>
-                  <select
-                    value={formData.company || ''}
-                    onChange={(event) => handleChange('company', event.target.value)}
-                    className={inputClassName}
-                    disabled={isSaving}
-                  >
-                    <option value="">Select company</option>
-                    {COMPANIES.map((company) => (
-                      <option key={company.code} value={company.code}>
-                        {company.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <FormFields />
 
               <button
                 onClick={handleSave}
@@ -621,14 +683,42 @@ const MyProfile = () => {
                     </Link>
                   )}
 
-                  {!isViewingManagedProfile && !isEditing ? (
+                  {isViewingManagedProfile ? (
+                    !isEditing ? (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className={`${primaryButtonClassName} -translate-y-1 hover:-translate-y-1.5`}
+                      >
+                        <SquarePen className="h-4 w-4" />
+                        Edit employee details
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={handleCancel}
+                          disabled={isSaving}
+                          className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold text-black transition -translate-y-1 hover:-translate-y-1.5 hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:-translate-y-1"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSave}
+                          disabled={isSaving}
+                          className={`${primaryButtonClassName} -translate-y-1 hover:-translate-y-1.5 disabled:cursor-not-allowed disabled:opacity-80 disabled:hover:-translate-y-1 disabled:hover:bg-[var(--color-brand-red)]`}
+                        >
+                          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                          Save employee details
+                        </button>
+                      </>
+                    )
+                  ) : !isEditing ? (
                     <button
                       onClick={() => setIsEditing(true)}
                       className={`${primaryButtonClassName} -translate-y-1 hover:-translate-y-1.5`}
                     >
                       Edit details
                     </button>
-                  ) : !isViewingManagedProfile ? (
+                  ) : (
                     <>
                       <button
                         onClick={handleCancel}
@@ -646,7 +736,7 @@ const MyProfile = () => {
                         Save changes
                       </button>
                     </>
-                  ) : null}
+                  )}
                 </div>
               </div>
 
@@ -662,134 +752,7 @@ const MyProfile = () => {
                 </div>
               )}
 
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="text-sm font-semibold text-black">Employee number</label>
-                  <input type="text" value={formData.employeeNumber} className={inputClassName} disabled />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Full name</label>
-                  <input
-                    type="text"
-                    value={formData.fullName}
-                    onChange={(event) => handleChange('fullName', event.target.value)}
-                    className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing || isSaving}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Department</label>
-                  <input
-                    type="text"
-                    value={formData.department}
-                    onChange={(event) => handleChange('department', event.target.value)}
-                    className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing || isSaving}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Role</label>
-                  <input
-                    type="text"
-                    value={formData.jobRole}
-                    onChange={(event) => handleChange('jobRole', event.target.value)}
-                    className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing || isSaving}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Phone number</label>
-                  <input
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(event) => handleChange('phoneNumber', event.target.value)}
-                    className={inputClassName}
-                    inputMode="numeric"
-                    pattern="\d{10}"
-                    maxLength={PHONE_NUMBER_LENGTH}
-                    placeholder="0712345678"
-                    disabled={isViewingManagedProfile || !isEditing || isSaving}
-                  />
-                  {phoneNumberError && <p className="mt-2 text-xs text-black">{phoneNumberError}</p>}
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Mobile number</label>
-                  <input
-                    type="tel"
-                    value={formData.mobileNumber}
-                    onChange={(event) => handleChange('mobileNumber', event.target.value)}
-                    className={inputClassName}
-                    inputMode="numeric"
-                    pattern="\d{10}"
-                    maxLength={PHONE_NUMBER_LENGTH}
-                    placeholder="0771234567"
-                    disabled={isViewingManagedProfile || !isEditing || isSaving}
-                  />
-                  {mobileNumberError && <p className="mt-2 text-xs text-black">{mobileNumberError}</p>}
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Email address</label>
-                  <input
-                    type="email"
-                    value={formData.email || ''}
-                    onChange={(event) => handleChange('email', event.target.value)}
-                    className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing || isSaving}
-                  />
-                  {emailError && <p className="mt-2 text-xs text-black">{emailError}</p>}
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">EXT number (optional)</label>
-                  <input
-                    type="tel"
-                    value={formData.extensionNumber || ''}
-                    onChange={(event) => handleChange('extensionNumber', event.target.value)}
-                    className={inputClassName}
-                    inputMode="numeric"
-                    pattern="\d{1,6}"
-                    maxLength={EXTENSION_NUMBER_MAX_LENGTH}
-                    placeholder="247"
-                    disabled={isViewingManagedProfile || !isEditing || isSaving}
-                  />
-                  {extensionNumberError && <p className="mt-2 text-xs text-black">{extensionNumberError}</p>}
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="text-sm font-semibold text-black">LinkedIn profile</label>
-                  <input
-                    type="url"
-                    value={formData.linkedinUrl || ''}
-                    onChange={(event) => handleChange('linkedinUrl', event.target.value)}
-                    className={inputClassName}
-                    placeholder="linkedin.com/in/your-profile"
-                    disabled={isViewingManagedProfile || !isEditing || isSaving}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-black">Company</label>
-                  <select
-                    value={formData.company || ''}
-                    onChange={(event) => handleChange('company', event.target.value)}
-                    className={inputClassName}
-                    disabled={isViewingManagedProfile || !isEditing || isSaving}
-                  >
-                    <option value="">Select company</option>
-                    {COMPANIES.map((company) => (
-                      <option key={company.code} value={company.code}>
-                        {company.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <FormFields />
             </div>
           </section>
         )}

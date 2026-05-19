@@ -4,16 +4,19 @@ import {
   Briefcase,
   Building2,
   Copy,
+  Download,
   Eye,
   Loader2,
   Mail,
   Phone,
+  QrCode,
   RefreshCw,
   Search,
   Share2,
   Trash2,
   Users,
 } from 'lucide-react';
+import QRCode from 'qrcode';
 import { COMPANIES, getCompanyCode, getCompanyLabel } from '../constants/companies';
 import api from '../utils/api';
 import { getStoredUser } from '../utils/auth';
@@ -47,6 +50,7 @@ const matchesUserSearch = (user, searchValue) => {
     user.email,
     user.department,
     user.jobRole,
+    user.whatsappNumber,
     user.phoneNumber,
     user.mobileNumber,
     user.company,
@@ -66,6 +70,44 @@ const sortUsers = (records) =>
     ),
   );
 
+const QR_CODE_OPTIONS = {
+  width: 280,
+  margin: 1,
+  color: {
+    dark: '#151515',
+    light: '#FFFFFFFF',
+  },
+};
+
+const loadImageElement = (src) =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+
+    if (src && !/^data:/i.test(src)) {
+      image.crossOrigin = 'anonymous';
+    }
+
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('We could not prepare that image.'));
+    image.src = src;
+  });
+
+const buildUserInitials = (user) =>
+  (user?.fullName || user?.employeeNumber || 'AB')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+
+const sanitizeFileStem = (value) =>
+  String(value || 'employee')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'employee';
+
 const AdminPanel = () => {
   const userInfo = getStoredUser();
   const [activeSection, setActiveSection] = useState('admins');
@@ -81,6 +123,9 @@ const AdminPanel = () => {
   const [pendingRoleUserId, setPendingRoleUserId] = useState('');
   const [pendingDeleteUserId, setPendingDeleteUserId] = useState('');
   const [isPromotingSelectedUser, setIsPromotingSelectedUser] = useState(false);
+  const [expandedQrUserId, setExpandedQrUserId] = useState('');
+  const [qrPreviewDataUrls, setQrPreviewDataUrls] = useState({});
+  const [qrLoadingUserId, setQrLoadingUserId] = useState('');
 
   useEffect(() => {
     if (!success) {
@@ -291,6 +336,224 @@ const AdminPanel = () => {
     }
   };
 
+  const getQrPreviewDataUrl = async (user) => {
+    const publicCardUrl = getEmployeePublicCardUrl(user);
+
+    if (!publicCardUrl) {
+      throw new Error(`${user.fullName || user.employeeNumber} does not have a public profile card yet.`);
+    }
+
+    if (qrPreviewDataUrls[user._id]) {
+      return qrPreviewDataUrls[user._id];
+    }
+
+    const qrDataUrl = await QRCode.toDataURL(publicCardUrl, QR_CODE_OPTIONS);
+    setQrPreviewDataUrls((currentValue) => ({
+      ...currentValue,
+      [user._id]: qrDataUrl,
+    }));
+    return qrDataUrl;
+  };
+
+  const buildQrCardCanvas = async (user) => {
+    const qrDataUrl = await getQrPreviewDataUrl(user);
+    const qrImage = await loadImageElement(qrDataUrl);
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      throw new Error('We could not prepare that QR code right now.');
+    }
+
+    const canvasWidth = 340;
+    const canvasHeight = 320;
+    const qrSize = 220;
+    const qrX = (canvasWidth - qrSize) / 2;
+    const qrY = 86;
+    const avatarSize = 54;
+    const avatarY = 22;
+    let hasRenderedProfileImage = false;
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    context.fillStyle = '#FFFFFF';
+    context.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    const displayName = user.fullName || user.employeeNumber || 'Employee';
+    context.fillStyle = '#151515';
+    context.font = "700 17px 'Segoe UI', sans-serif";
+    context.textAlign = 'left';
+    context.textBaseline = 'middle';
+
+    const maxNameWidth = canvasWidth - 88;
+    const measuredNameWidth = Math.min(context.measureText(displayName).width, maxNameWidth);
+    const headerGap = 14;
+    const headerWidth = avatarSize + headerGap + measuredNameWidth;
+    const headerX = Math.max(22, (canvasWidth - headerWidth) / 2);
+    const avatarX = headerX;
+    const nameX = avatarX + avatarSize + headerGap;
+    const nameY = avatarY + avatarSize / 2;
+
+    context.save();
+    context.beginPath();
+    context.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+    context.closePath();
+    context.clip();
+
+    if (user.profileImage) {
+      try {
+        const profileImage = await loadImageElement(user.profileImage);
+        context.drawImage(profileImage, avatarX, avatarY, avatarSize, avatarSize);
+        hasRenderedProfileImage = true;
+      } catch {
+        context.fillStyle = '#B41F31';
+        context.fillRect(avatarX, avatarY, avatarSize, avatarSize);
+      }
+    } else {
+      context.fillStyle = '#B41F31';
+      context.fillRect(avatarX, avatarY, avatarSize, avatarSize);
+    }
+
+    context.restore();
+
+    if (!hasRenderedProfileImage) {
+      context.fillStyle = '#FFFFFF';
+      context.font = "700 24px 'Segoe UI', sans-serif";
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(buildUserInitials(user) || 'AB', avatarX + avatarSize / 2, avatarY + avatarSize / 2 + 1);
+    }
+
+    context.fillStyle = '#151515';
+    context.font = "700 17px 'Segoe UI', sans-serif";
+    context.textAlign = 'left';
+    context.textBaseline = 'middle';
+
+    const nameWords = displayName.split(/\s+/).filter(Boolean);
+    const nameLines = [];
+    let currentLine = '';
+
+    nameWords.forEach((word) => {
+      const nextLine = currentLine ? `${currentLine} ${word}` : word;
+
+      if (currentLine && context.measureText(nextLine).width > maxNameWidth) {
+        nameLines.push(currentLine);
+        currentLine = word;
+        return;
+      }
+
+      currentLine = nextLine;
+    });
+
+    if (currentLine) {
+      nameLines.push(currentLine);
+    }
+
+    nameLines.slice(0, 2).forEach((line, index) => {
+      const lineOffset = nameLines.length > 1 ? (index === 0 ? -10 : 10) : 0;
+      context.fillText(line, nameX, nameY + lineOffset);
+    });
+
+    context.fillStyle = '#FFFFFF';
+    context.fillRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
+    context.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+    return canvas;
+  };
+
+  const handleToggleQrPreview = async (user) => {
+    if (!getEmployeePublicCardUrl(user)) {
+      setError(`${user.fullName || user.employeeNumber} does not have a public profile card yet.`);
+      setSuccess('');
+      return;
+    }
+
+    if (expandedQrUserId === String(user._id)) {
+      setExpandedQrUserId('');
+      setError('');
+      setSuccess('');
+      return;
+    }
+
+    try {
+      setQrLoadingUserId(String(user._id));
+      await getQrPreviewDataUrl(user);
+      setExpandedQrUserId(String(user._id));
+      setError('');
+      setSuccess('');
+    } catch (qrError) {
+      setError(qrError?.message || 'We could not generate that QR code right now.');
+      setSuccess('');
+    } finally {
+      setQrLoadingUserId('');
+    }
+  };
+
+  const handleCopyPublicCardQr = async (user) => {
+    try {
+      if (!navigator.clipboard?.write || !window.ClipboardItem) {
+        setError('This browser does not support copying QR images to the clipboard yet.');
+        setSuccess('');
+        return;
+      }
+
+      const canvas = await buildQrCardCanvas(user);
+      const qrBlob = await new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('We could not create the QR code image.'));
+            return;
+          }
+
+          resolve(blob);
+        }, 'image/png');
+      });
+
+      await navigator.clipboard.write([
+        new window.ClipboardItem({
+          [qrBlob.type || 'image/png']: qrBlob,
+        }),
+      ]);
+
+      setError('');
+      setSuccess(`QR code copied for ${user.fullName || user.employeeNumber}.`);
+    } catch (copyError) {
+      setError(copyError?.message || 'We could not copy that QR code right now.');
+      setSuccess('');
+    }
+  };
+
+  const handleDownloadPublicCardQr = async (user) => {
+    try {
+      const canvas = await buildQrCardCanvas(user);
+
+      const jpgBlob = await new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('We could not create the QR code image.'));
+            return;
+          }
+
+          resolve(blob);
+        }, 'image/jpeg', 0.96);
+      });
+
+      const objectUrl = window.URL.createObjectURL(jpgBlob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = `${sanitizeFileStem(user.fullName || user.employeeNumber || 'employee')}-qr.jpg`;
+      link.click();
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 500);
+
+      setError('');
+      setSuccess(`QR code downloaded for ${user.fullName || user.employeeNumber}.`);
+    } catch (downloadError) {
+      setError(downloadError?.message || 'We could not download that QR code right now.');
+      setSuccess('');
+    }
+  };
+
   const selectedCompanyLabel = getCompanyLabel(selectedCompany);
 
   return (
@@ -383,11 +646,15 @@ const AdminPanel = () => {
                   className={slimInputClassName}
                   disabled={eligibleUsers.length === 0}
                 >
-                  <option value="">
-                    {eligibleUsers.length === 0
-                      ? 'No employee accounts available'
-                      : 'Select an employee account'}
-                  </option>
+                  {eligibleUsers.length === 0 ? (
+                    <option value="" disabled>
+                      No employee accounts available
+                    </option>
+                  ) : (
+                    <option value="" disabled hidden>
+                      Select an employee account
+                    </option>
+                  )}
                   {eligibleUsers.map((user) => (
                     <option key={user._id} value={String(user._id)}>
                       {user.fullName || user.employeeNumber}{' '}
@@ -607,17 +874,59 @@ const AdminPanel = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               <Briefcase className="h-4 w-4 text-black/70" />
-                              {user.department || 'Department not added yet'}
+                              {user.jobRole || 'Role not added yet'}
                             </div>
                             <div className="flex items-center gap-2 sm:col-span-2">
                               <Briefcase className="h-4 w-4 text-black/70" />
-                              {user.jobRole || 'Role not added yet'}
+                              {user.department || 'Department not added yet'}
                             </div>
                           </div>
+
+                          {expandedQrUserId === String(user._id) && qrPreviewDataUrls[user._id] ? (
+                            <div className="mt-4 max-w-[15rem] rounded-[1.4rem] border border-black/10 bg-[#fafafa] p-3.5">
+                              <img
+                                src={qrPreviewDataUrls[user._id]}
+                                alt={`${user.fullName || user.employeeNumber} QR code`}
+                                className="mx-auto h-44 w-44 rounded-2xl bg-white p-2 object-contain"
+                              />
+                              <div className="mt-3 flex items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadPublicCardQr(user)}
+                                  className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-black transition hover:bg-[#f3f3f3]"
+                                >
+                                  <Download className="h-3.5 w-3.5" />
+                                  Download
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyPublicCardQr(user)}
+                                  className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-black transition hover:bg-[#f3f3f3]"
+                                >
+                                  <Copy className="h-3.5 w-3.5" />
+                                  Copy
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
 
                       <div className="flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleQrPreview(user)}
+                          disabled={!hasPublicCard}
+                          title={hasPublicCard ? 'Show QR code' : 'Public profile card not available yet'}
+                          aria-label={hasPublicCard ? 'Show QR code' : 'Public profile card not available yet'}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35 disabled:hover:bg-white"
+                        >
+                          {qrLoadingUserId === String(user._id) ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <QrCode className="h-4 w-4" />
+                          )}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleCopyPublicCardLink(user)}

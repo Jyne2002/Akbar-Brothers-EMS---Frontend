@@ -83,11 +83,11 @@ const PublicProfileCard = () => {
         {
           key: 'whatsapp',
           alt: 'WhatsApp',
-          href: getWhatsappUrl(profile?.phoneNumber),
+          href: getWhatsappUrl(profile?.whatsappNumber),
           icon: '/whatsapp.png',
         },
       ].filter((link) => link.href),
-    [profile?.linkedinUrl, profile?.phoneNumber],
+    [profile?.linkedinUrl, profile?.whatsappNumber],
   );
 
   const profileRows = useMemo(
@@ -99,9 +99,21 @@ const PublicProfileCard = () => {
           label: 'Phone',
           value: phoneParts.mainText || phoneParts.combinedText || 'Not shared yet',
           extensionTone: phoneParts.extensionText,
+          copyValue: phoneParts.combinedText,
+          icon: 'phone',
         },
-        { label: 'Mobile', value: profile?.mobileNumber || 'Not shared yet' },
-        { label: 'Email', value: profile?.email || 'Not shared yet' },
+        {
+          label: 'Mobile',
+          value: profile?.mobileNumber || 'Not shared yet',
+          copyValue: profile?.mobileNumber || '',
+          icon: 'mobile',
+        },
+        {
+          label: 'Email',
+          value: profile?.email || 'Not shared yet',
+          copyValue: profile?.email || '',
+          icon: 'email',
+        },
       ];
     },
     [profile?.email, profile?.extensionNumber, profile?.mobileNumber, profile?.phoneNumber],
@@ -181,6 +193,28 @@ const PublicProfileCard = () => {
     }
   };
 
+  const handleCopyField = async (label, value) => {
+    const copyValue = String(value || '').trim();
+
+    if (!copyValue) {
+      setNotice(`${label} is not available to copy yet.`);
+      return;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(copyValue);
+        setNotice(`${label} copied to your clipboard.`);
+        return;
+      }
+
+      window.prompt(`Copy this ${label.toLowerCase()}:`, copyValue);
+      setNotice(`${label} is ready to copy.`);
+    } catch (copyError) {
+      setNotice(copyError?.message || `We could not copy the ${label.toLowerCase()} right now.`);
+    }
+  };
+
   const handleDownload = async (format) => {
     if (!profile) {
       return;
@@ -254,6 +288,7 @@ const PublicProfileCard = () => {
           onBack={handleBackHome}
           onShare={handleShare}
           onCopy={handleCopyLink}
+          onCopyField={handleCopyField}
           onToggleDownloadMenu={() => setDownloadMenuOpen((currentState) => !currentState)}
           onDownload={handleDownload}
         />
