@@ -56,10 +56,7 @@ const CompanyInfo = () => {
           </div>
 
           <div className="px-1 py-2">
-            <p className="text-sm font-bold leading-7 text-black/74">
-              Company Details
-            </p>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-black/74">
+            <p className="max-w-3xl text-sm leading-7 text-black/74">
               {company.companyOverview}
             </p>
 

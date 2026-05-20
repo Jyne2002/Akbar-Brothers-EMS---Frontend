@@ -66,10 +66,7 @@ const PublicCompanyInfo = () => {
         </div>
 
         <div className="mt-4 text-center">
-          <p className="text-[0.93rem] font-bold leading-6 text-black/74">
-            Company Details
-          </p>
-          <p className="mt-1.5 text-[0.93rem] leading-6 text-black/74">{company.companyOverview}</p>
+          <p className="text-[0.93rem] leading-6 text-black/74">{company.companyOverview}</p>
         </div>
 
         <div className="mt-4">
