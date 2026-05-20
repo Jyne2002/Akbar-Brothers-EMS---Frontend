@@ -69,7 +69,7 @@ const PublicProfileCard = () => {
     identitySlug || canonicalIdentitySlug,
   );
   const publicCompanyInfoState = useMemo(
-    () => ({ fromApp: openedFromApp }),
+    () => ({ fromApp: openedFromApp, fromPublicCard: true }),
     [openedFromApp],
   );
   const companyLogoSrc = company?.logo || '/akbar-corporate-logo.png';
@@ -251,6 +251,15 @@ const PublicProfileCard = () => {
   const handleBackHome = () => {
     if (openedFromApp) {
       navigate('/');
+      return;
+    }
+
+    const hasPreviousBrowserPage =
+      (typeof document !== 'undefined' && Boolean(document.referrer)) ||
+      Number(window.history.state?.idx ?? 0) > 0;
+
+    if (hasPreviousBrowserPage) {
+      navigate(-1);
       return;
     }
 

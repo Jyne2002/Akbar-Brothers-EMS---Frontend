@@ -15,10 +15,18 @@ const PublicCompanyInfo = () => {
   const showLogo = Boolean(company?.logo) && logoErrorCompanyCode !== company?.code;
   const publicProfilePath = buildPublicProfilePath(shareSlug, '', '', identitySlug);
   const backTarget = publicProfilePath || '/';
+  const cameFromPublicCard = location.state?.fromPublicCard === true;
   const publicProfileState = {
     fromApp: location.state?.fromApp === true,
   };
-  const handleBackToCard = () => navigate(backTarget, { replace: true, state: publicProfileState });
+  const handleBackToCard = () => {
+    if (cameFromPublicCard) {
+      navigate(-1);
+      return;
+    }
+
+    navigate(backTarget, { replace: true, state: publicProfileState });
+  };
 
   if (!company) {
     return (
