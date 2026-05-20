@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import PublicProfileCardLayout from '../components/PublicProfileCardLayout';
 import { getCompanyByValue } from '../constants/companies';
 import api from '../utils/api';
@@ -17,6 +17,7 @@ import {
 
 const PublicProfileCard = () => {
   const { shareSlug, identitySlug } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +60,7 @@ const PublicProfileCard = () => {
     () => buildPublicIdentitySegment(profile?.fullName, profile?.employeeNumber),
     [profile?.employeeNumber, profile?.fullName],
   );
+  const openedFromApp = location.state?.fromApp === true;
   const publicCompanyInfoPath = buildPublicCompanyInfoUrl(
     shareSlug,
     company?.code,
@@ -243,6 +245,11 @@ const PublicProfileCard = () => {
   };
 
   const handleBackHome = () => {
+    if (openedFromApp) {
+      navigate('/');
+      return;
+    }
+
     if (window.history.length > 1) {
       navigate(-1);
       return;
@@ -298,6 +305,7 @@ const PublicProfileCard = () => {
           downloadMenuOpen={downloadMenuOpen}
           downloading={downloading}
           notice={notice}
+          backButtonLabel={openedFromApp ? 'Back to home' : 'Go back'}
           onBack={handleBackHome}
           onShare={handleShare}
           onCopy={handleCopyLink}

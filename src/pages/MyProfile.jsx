@@ -601,6 +601,7 @@ const MyProfile = () => {
             {publicCardPath && (
               <Link
                 to={publicCardPath}
+                state={{ fromApp: true }}
                 aria-label="Open mobile share card"
                 title="Open mobile share card"
                 className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white text-black shadow-sm transition hover:bg-[#f3f3f3]"
