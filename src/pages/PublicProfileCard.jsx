@@ -255,12 +255,8 @@ const PublicProfileCard = () => {
     }
 
     window.close();
-
-    window.setTimeout(() => {
-      if (!document.hidden) {
-        window.location.replace('about:blank');
-      }
-    }, 150);
+    window.open('', '_self');
+    window.close();
   };
 
   if (loading) {
