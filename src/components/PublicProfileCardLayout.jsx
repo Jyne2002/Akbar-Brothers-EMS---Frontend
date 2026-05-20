@@ -1,4 +1,4 @@
-import { ArrowLeft, Building2, Copy, Download, Mail, Phone, Share2, Smartphone } from 'lucide-react';
+import { Building2, Copy, Download, Home, Mail, Phone, Share2, Smartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getBrandMaskedIconStyle } from '../utils/socialIcons';
 
@@ -33,7 +33,7 @@ const PublicProfileCardLayout = ({
         title={backButtonLabel}
         className="absolute left-4 top-4 z-20 inline-flex h-8 w-8 items-center justify-center text-black transition hover:-translate-x-0.5"
       >
-        <ArrowLeft className="h-5 w-5" />
+        <Home className="h-5 w-5" />
       </button>
     ) : null}
 

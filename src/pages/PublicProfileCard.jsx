@@ -61,6 +61,10 @@ const PublicProfileCard = () => {
     [profile?.employeeNumber, profile?.fullName],
   );
   const openedFromApp = location.state?.fromApp === true;
+  const entryReferrer = useMemo(
+    () => location.state?.entryReferrer || document.referrer || '',
+    [location.state?.entryReferrer],
+  );
   const publicCompanyInfoPath = buildPublicCompanyInfoUrl(
     shareSlug,
     company?.code,
@@ -69,8 +73,8 @@ const PublicProfileCard = () => {
     identitySlug || canonicalIdentitySlug,
   );
   const publicCompanyInfoState = useMemo(
-    () => ({ fromApp: openedFromApp, fromPublicCard: true }),
-    [openedFromApp],
+    () => ({ fromApp: openedFromApp, fromPublicCard: true, entryReferrer }),
+    [entryReferrer, openedFromApp],
   );
   const companyLogoSrc = company?.logo || '/akbar-corporate-logo.png';
   const companyLogoAlt = company?.companyName
@@ -254,12 +258,8 @@ const PublicProfileCard = () => {
       return;
     }
 
-    const hasPreviousBrowserPage =
-      (typeof document !== 'undefined' && Boolean(document.referrer)) ||
-      Number(window.history.state?.idx ?? 0) > 0;
-
-    if (hasPreviousBrowserPage) {
-      navigate(-1);
+    if (entryReferrer) {
+      window.location.replace(entryReferrer);
       return;
     }
 
@@ -310,7 +310,7 @@ const PublicProfileCard = () => {
           downloadMenuOpen={downloadMenuOpen}
           downloading={downloading}
           notice={notice}
-          backButtonLabel={openedFromApp ? 'Back to home' : 'Go back'}
+          backButtonLabel={openedFromApp ? 'Go to homepage' : 'Leave public card'}
           onBack={handleBackHome}
           onShare={handleShare}
           onCopy={handleCopyLink}

@@ -18,6 +18,7 @@ const PublicCompanyInfo = () => {
   const cameFromPublicCard = location.state?.fromPublicCard === true;
   const publicProfileState = {
     fromApp: location.state?.fromApp === true,
+    entryReferrer: location.state?.entryReferrer || '',
   };
   const handleBackToCard = () => {
     if (cameFromPublicCard) {
