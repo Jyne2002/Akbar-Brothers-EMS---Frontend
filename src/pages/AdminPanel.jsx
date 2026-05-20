@@ -882,8 +882,41 @@ const AdminPanel = () => {
                             </div>
                           </div>
 
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-start gap-3">
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleQrPreview(user)}
+                            disabled={!hasPublicCard}
+                            title={
+                              hasPublicCard
+                                ? expandedQrUserId === String(user._id)
+                                  ? 'Hide QR code'
+                                  : 'Show QR code'
+                                : 'Public profile card not available yet'
+                            }
+                            aria-label={
+                              hasPublicCard
+                                ? expandedQrUserId === String(user._id)
+                                  ? 'Hide QR code'
+                                  : 'Show QR code'
+                                : 'Public profile card not available yet'
+                            }
+                            aria-expanded={expandedQrUserId === String(user._id)}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35 disabled:hover:bg-white"
+                          >
+                            {qrLoadingUserId === String(user._id) ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <QrCode className="h-4 w-4" />
+                            )}
+                          </button>
+
                           {expandedQrUserId === String(user._id) && qrPreviewDataUrls[user._id] ? (
-                            <div className="mt-4 max-w-[15rem] rounded-[1.4rem] border border-black/10 bg-[#fafafa] p-3.5">
+                            <div className="absolute left-0 top-full z-20 mt-3 w-[15rem] rounded-[1.4rem] border border-black/10 bg-[#fafafa] p-3.5 shadow-[0_22px_44px_rgba(0,0,0,0.12)]">
                               <img
                                 src={qrPreviewDataUrls[user._id]}
                                 alt={`${user.fullName || user.employeeNumber} QR code`}
@@ -893,40 +926,25 @@ const AdminPanel = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleDownloadPublicCardQr(user)}
-                                  className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-black transition hover:bg-[#f3f3f3]"
+                                  title="Download QR code"
+                                  aria-label="Download QR code"
+                                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:bg-[#f3f3f3]"
                                 >
                                   <Download className="h-3.5 w-3.5" />
-                                  Download
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleCopyPublicCardQr(user)}
-                                  className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-black transition hover:bg-[#f3f3f3]"
+                                  title="Copy QR code"
+                                  aria-label="Copy QR code"
+                                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:bg-[#f3f3f3]"
                                 >
                                   <Copy className="h-3.5 w-3.5" />
-                                  Copy
                                 </button>
                               </div>
                             </div>
                           ) : null}
                         </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-3">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleQrPreview(user)}
-                          disabled={!hasPublicCard}
-                          title={hasPublicCard ? 'Show QR code' : 'Public profile card not available yet'}
-                          aria-label={hasPublicCard ? 'Show QR code' : 'Public profile card not available yet'}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:border-black/8 disabled:text-black/35 disabled:hover:bg-white"
-                        >
-                          {qrLoadingUserId === String(user._id) ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <QrCode className="h-4 w-4" />
-                          )}
-                        </button>
                         <button
                           type="button"
                           onClick={() => handleCopyPublicCardLink(user)}
