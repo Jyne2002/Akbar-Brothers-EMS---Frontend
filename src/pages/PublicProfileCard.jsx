@@ -242,7 +242,20 @@ const PublicProfileCard = () => {
     }
   };
 
-  const handleBackHome = () => navigate('/');
+  const handleBackHome = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    window.close();
+
+    window.setTimeout(() => {
+      if (!document.hidden) {
+        window.location.replace('about:blank');
+      }
+    }, 150);
+  };
 
   if (loading) {
     return (

@@ -27,8 +27,8 @@ const PublicProfileCardLayout = ({
       <button
         type="button"
         onClick={onBack}
-        aria-label="Back to home"
-        title="Back to home"
+        aria-label="Go back"
+        title="Go back"
         className="absolute left-4 top-4 z-20 inline-flex h-8 w-8 items-center justify-center text-black transition hover:-translate-x-0.5"
       >
         <ArrowLeft className="h-5 w-5" />
