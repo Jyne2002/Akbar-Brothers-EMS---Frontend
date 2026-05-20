@@ -79,11 +79,11 @@ const PublicProfileCardLayout = ({
           {profileRows.map((row, index) => (
             <div
               key={row.label}
-              className={`grid grid-cols-[1.5rem_minmax(0,1fr)_2rem] items-start gap-3 ${
+              className={`grid grid-cols-[1.5rem_minmax(0,1fr)_2rem] items-center gap-3 ${
                 index === profileRows.length - 1 ? '' : 'border-b border-black/10 pb-2.5'
               }`}
             >
-              <span className="pt-0.5 text-black/78" aria-hidden="true">
+              <span className="flex h-8 items-center justify-center text-black/78" aria-hidden="true">
                 {row.icon === 'mobile' ? (
                   <Smartphone className="h-4.5 w-4.5" />
                 ) : row.icon === 'email' ? (
@@ -92,7 +92,7 @@ const PublicProfileCardLayout = ({
                   <Phone className="h-4.5 w-4.5" />
                 )}
               </span>
-              <span className="min-w-0 break-words text-[0.94rem] leading-5 text-[var(--color-brand-ink)]/82">
+              <span className="min-w-0 self-center break-words text-[0.94rem] leading-5 text-[var(--color-brand-ink)]/82">
                 {row.value}
                 {row.extensionTone ? (
                   <span className="text-[var(--color-brand-ink)]/48">{row.extensionTone}</span>
