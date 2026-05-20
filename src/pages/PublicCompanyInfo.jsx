@@ -49,12 +49,12 @@ const PublicCompanyInfo = () => {
           <ArrowLeft className="h-5 w-5" />
         </button>
 
-        <div className="flex min-h-[8rem] items-start justify-center px-2 pt-2 sm:min-h-[9rem] sm:px-3 sm:pt-2">
+        <div className="flex h-[8rem] items-end justify-center overflow-hidden px-2 pt-1 sm:h-[9rem] sm:px-3 sm:pt-1">
           {showLogo ? (
             <img
               src={company.logo}
               alt={`${company.companyName} corporate logo`}
-              className="mx-auto h-[5.35rem] w-auto translate-y-3 object-contain sm:h-[6.2rem]"
+              className="mx-auto h-[7.15rem] w-auto object-contain sm:h-[8.1rem]"
               onError={() => setLogoErrorCompanyCode(company.code)}
             />
           ) : (
