@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2 } from 'lucide-react';
 import CompanyActionButtons from '../components/CompanyActionButtons';
 import CompanyContactButtons from '../components/CompanyContactButtons';
@@ -8,13 +8,17 @@ import { buildPublicProfilePath } from '../utils/profileCard';
 
 const PublicCompanyInfo = () => {
   const { shareSlug, companyId, identitySlug } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const company = getCompanyByValue(decodeURIComponent(companyId || ''));
   const [logoErrorCompanyCode, setLogoErrorCompanyCode] = useState('');
   const showLogo = Boolean(company?.logo) && logoErrorCompanyCode !== company?.code;
   const publicProfilePath = buildPublicProfilePath(shareSlug, '', '', identitySlug);
   const backTarget = publicProfilePath || '/';
-  const handleBackToCard = () => navigate(backTarget);
+  const publicProfileState = {
+    fromApp: location.state?.fromApp === true,
+  };
+  const handleBackToCard = () => navigate(backTarget, { replace: true, state: publicProfileState });
 
   if (!company) {
     return (
@@ -26,6 +30,8 @@ const PublicCompanyInfo = () => {
           </p>
           <Link
             to={publicProfilePath}
+            replace
+            state={publicProfileState}
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-[var(--color-brand-red)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-red-dark)]"
           >
             <ArrowLeft className="h-4 w-4" />

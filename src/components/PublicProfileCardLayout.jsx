@@ -10,6 +10,7 @@ const PublicProfileCardLayout = ({
   profileRows,
   initials,
   publicCompanyInfoPath,
+  publicCompanyInfoState,
   socialLinks,
   showInteractiveSection = true,
   downloadMenuOpen = false,
@@ -202,6 +203,7 @@ const PublicProfileCardLayout = ({
                 {publicCompanyInfoPath ? (
                   <Link
                     to={publicCompanyInfoPath}
+                    state={publicCompanyInfoState}
                     className="inline-flex -translate-y-2 items-center justify-center gap-2 rounded-full bg-[var(--color-brand-red)] px-6 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-2.5 hover:bg-[var(--color-brand-red-dark)]"
                   >
                     <Building2 className="h-4 w-4" />

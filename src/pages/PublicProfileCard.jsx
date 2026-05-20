@@ -68,6 +68,10 @@ const PublicProfileCard = () => {
     profile?.employeeNumber,
     identitySlug || canonicalIdentitySlug,
   );
+  const publicCompanyInfoState = useMemo(
+    () => ({ fromApp: openedFromApp }),
+    [openedFromApp],
+  );
   const companyLogoSrc = company?.logo || '/akbar-corporate-logo.png';
   const companyLogoAlt = company?.companyName
     ? `${company.companyName} corporate logo`
@@ -250,11 +254,6 @@ const PublicProfileCard = () => {
       return;
     }
 
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-
     window.close();
 
     window.setTimeout(() => {
@@ -301,6 +300,7 @@ const PublicProfileCard = () => {
           profileRows={profileRows}
           initials={initials}
           publicCompanyInfoPath={publicCompanyInfoPath}
+          publicCompanyInfoState={publicCompanyInfoState}
           socialLinks={socialLinks}
           downloadMenuOpen={downloadMenuOpen}
           downloading={downloading}
